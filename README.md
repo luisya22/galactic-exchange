@@ -1,5 +1,5 @@
 # galactic-exchange
-Galactic Exchange is a CLI-based, real-time strategy game designed to be engaging yet respectful of your time. You manage a space-trading faction in a dynamic universe. The game features real-world time as a resource, various NPC factions, and a real-time economy system. Gaex can run in the background, sending you notifications for crucial events, allowing you to focus on your day-to-day tasks while keeping your in-game empire running smoothly.
+Galactic Exchange is a real-time, CLI-based strategy game that allows you to explore, trade, and manage a space-trading faction in a dynamically generated universe. Designed to be both engaging and respectful of your time, the game leverages real-world time as a resource and features a real-time economy system, various NPC factions, and intricate mechanics like interstellar commerce, diplomacy, and conflict. Galactic Exchange can run in the background, sending you notifications for crucial events, allowing you to attend to your real-world responsibilities while keeping your in-game empire running smoothly.
 
 ## :warning: Work in Progress Notice :warning:
 
