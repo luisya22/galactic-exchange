@@ -9,12 +9,13 @@ This project is currently under development and not all features are implemented
 
 ### MVP (Minimum Viable Product)
 
-- [ ] Universe Generation with different zones and resources
+- [x] Universe Generation with different zones and resources
 - [ ] Basic Resource Management
 - [ ] Simple Trading and Economy System (static prices)
 - [ ] Basic NPC Factions with random behaviors (select random action from list)
 - [ ] Real-world Time Management
 - [ ] Notifications for crucial events
+- [ ] Access game through basic CLI commands
 
 ### Full Game
 
@@ -36,6 +37,7 @@ This project is currently under development and not all features are implemented
 - [ ] **Espionage and Sabotage**: Damage other factions ships or steal plans (buildings, ships, ...)
 - [ ] **Resource Processing**: Convert raw materials into more valuable products.
 - [ ] **Simulation**: Planets should change their resource demand over time (population, world events, technology advancement)
+- [ ] **UI**: CLI commands and TUI to access game features
 
 ### Additional Mechanics
 - [ ] **Stock Market**: Invest in different companies or planets and watch as your portfolio grows or shrinks based on in-game events.
