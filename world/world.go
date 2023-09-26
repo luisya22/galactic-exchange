@@ -82,10 +82,10 @@ func NewWorld() *World {
 		RandomNumber:   randomnumber,
 	}
 
-	world.Zones = make(map[string]*Zone, 5)
+	world.Zones = make(map[string]*Zone, 100000)
 	world.Planets = make(map[string]*Planet, 100)
 
-	world.GenerateZones(100)
+	world.GenerateZones(10_000, 100_000)
 
 	return world
 

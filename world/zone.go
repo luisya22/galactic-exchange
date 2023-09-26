@@ -1,6 +1,9 @@
 package world
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 type ZoneType struct {
 	Name                 ZoneName
@@ -31,48 +34,76 @@ const (
 	DarkMatterZones ZoneName = "Dark Matter Zones"
 )
 
-func (w *World) GenerateZones(numZones int) {
+func (w *World) GenerateZones(mapSize float64, numZones int) {
 	type zonePercentages struct {
 		zType      ZoneName
 		percentage float64
 	}
+	// Define layer percentages
 	zp := []zonePercentages{
 		{
 			zType:      GuardianSectors,
-			percentage: 0.30,
+			percentage: 0.15,
 		},
 		{
 			zType:      TradeLanes,
-			percentage: 0.30,
+			percentage: 0.20,
 		},
 		{
 			zType:      OutlawQuadrants,
-			percentage: 0.25,
+			percentage: 0.20,
 		},
 		{
 			zType:      DarkMatterZones,
-			percentage: 0.15,
+			percentage: 0.45,
 		},
 	}
 
+	layerBoundaries := []float64{}
+
+	// Calculate layer boundaries
+	currentBoundary := 0.0
+	for _, zonePercentage := range zp {
+		currentBoundary += mapSize / 2 * zonePercentage.percentage
+
+		fmt.Println(currentBoundary)
+		layerBoundaries = append(layerBoundaries, currentBoundary)
+	}
+
+	fmt.Println(layerBoundaries)
+
 	cp := 0
 	pcp := 0.0
-
 	for i := 0; i < numZones; i++ {
-
-		fmt.Println()
-
 		if float64(numZones)*(pcp+zp[cp].percentage) < float64(i) {
 			pcp += zp[cp].percentage
 			cp++
 		}
+
+		// Calculate location
+		innerRadius := 0.0
+
+		if cp != 0 {
+			innerRadius = layerBoundaries[cp-1]
+		}
+		outerRadius := layerBoundaries[cp]
+
+		// if cp+1 != len(layerBoundaries) {
+		// 	outerRadius = layerBoundaries[cp+1]
+		// }
+
+		radius := innerRadius + (outerRadius-innerRadius)*w.RandomNumber.Float64()
+		angle := 2 * math.Pi * w.RandomNumber.Float64()
+
+		x := mapSize/2 + radius*math.Cos(angle)
+		y := mapSize/2 + radius*math.Sin(angle)
 
 		currentZoneType := w.AllZoneTypes[zp[cp].zType]
 
 		dangerLevel := w.randomInt(currentZoneType.LowerDanger, currentZoneType.HigherDanger)
 		zone := Zone{
 			Name:            fmt.Sprintf("Zone-%d", i+1),
-			CentralPoint:    Coordinates{w.RandomNumber.Float64() * 10_000, w.RandomNumber.Float64() * 10_000},
+			CentralPoint:    Coordinates{x, y},
 			DangerRange:     [2]int{dangerLevel, dangerLevel + 10},
 			ResourceProfile: GenerateResourceProfile(),
 			ZoneType:        ZoneName(currentZoneType.Name),
@@ -84,5 +115,57 @@ func (w *World) GenerateZones(numZones int) {
 
 		w.Zones[zone.Name] = &zone
 	}
-
 }
+
+// func (w *World) GenerateZones(numZones int) {
+// 	type zonePercentages struct {
+// 		zType      ZoneName
+// 		percentage float64
+// 	}
+// 	zp := []zonePercentages{
+// 		{
+// 			zType:      GuardianSectors,
+// 			percentage: 0.15,
+// 		},
+// 		{
+// 			zType:      TradeLanes,
+// 			percentage: 0.20,
+// 		},
+// 		{
+// 			zType:      OutlawQuadrants,
+// 			percentage: 0.20,
+// 		},
+// 		{
+// 			zType:      DarkMatterZones,
+// 			percentage: 0.55,
+// 		},
+// 	}
+//
+// 	cp := 0
+// 	pcp := 0.0
+//
+// 	for i := 0; i < numZones; i++ {
+// 		if float64(numZones)*(pcp+zp[cp].percentage) < float64(i) {
+// 			pcp += zp[cp].percentage
+// 			cp++
+// 		}
+//
+// 		currentZoneType := w.AllZoneTypes[zp[cp].zType]
+//
+// 		dangerLevel := w.randomInt(currentZoneType.LowerDanger, currentZoneType.HigherDanger)
+// 		zone := Zone{
+// 			Name:            fmt.Sprintf("Zone-%d", i+1),
+// 			CentralPoint:    Coordinates{w.RandomNumber.Float64() * 10_000, w.RandomNumber.Float64() * 10_000},
+// 			DangerRange:     [2]int{dangerLevel, dangerLevel + 10},
+// 			ResourceProfile: GenerateResourceProfile(),
+// 			ZoneType:        ZoneName(currentZoneType.Name),
+// 		}
+//
+// 		planetsAmount := w.randomInt(currentZoneType.LowerPlanetsAmount, currentZoneType.HigherPlanetsAmount)
+//
+// 		zone.Planets = w.GeneratePlanetsInZone(planetsAmount, zone, w.AllZoneTypes[zone.ZoneType])
+//
+// 		w.Zones[zone.Name] = &zone
+// 	}
+//
+// }
