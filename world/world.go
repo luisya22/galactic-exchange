@@ -9,7 +9,7 @@ type World struct {
 	Planets        map[string]*Planet
 	Zones          map[string]*Zone
 	ResourceRarity map[Resource]Rarity
-	AllResources   map[Resource]struct{}
+	AllResources   map[Resource]ResourceInfo
 	AllZoneTypes   map[LayerName]ZoneType
 	RandomNumber   *rand.Rand
 }
@@ -25,13 +25,7 @@ func New() *World {
 		Food:  Rare,
 	}
 
-	allResources := map[Resource]struct{}{
-		Gold:  {},
-		Iron:  {},
-		Water: {},
-		Food:  {},
-	}
-
+	allResources := CreateWorldResources()
 	allZoneTypes := map[LayerName]ZoneType{
 		SectorOne: {
 			Name:                 SectorOne,

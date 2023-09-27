@@ -2,7 +2,7 @@ package world
 
 import "math/rand"
 
-type Resource int
+type Resource string
 
 type ResourceProfile struct {
 	Primary   Resource
@@ -19,11 +19,16 @@ const (
 )
 
 const (
-	Gold Resource = iota
-	Iron
-	Water
-	Food
+	Gold  Resource = "gold"
+	Iron  Resource = "iron"
+	Water Resource = "water"
+	Food  Resource = "food"
 )
+
+type ResourceInfo struct {
+	Name      Resource
+	BasePrice float64
+}
 
 func shouldIncludeResource(world World, res Resource, planet Planet) bool {
 	rarity := world.ResourceRarity[res]
@@ -51,5 +56,34 @@ func GenerateResourceProfile() ResourceProfile {
 	return ResourceProfile{
 		Primary:   resources[0],
 		Secondary: resources[1],
+	}
+}
+
+// map[Resource]struct{}{
+// 		Gold:  {},
+// 		Iron:  {},
+// 		Water: {},
+// 		Food:  {},
+// 	}
+//
+
+func CreateWorldResources() map[Resource]ResourceInfo {
+	return map[Resource]ResourceInfo{
+		Gold: {
+			Name:      Gold,
+			BasePrice: 250,
+		},
+		Iron: {
+			Name:      Iron,
+			BasePrice: 200,
+		},
+		Water: {
+			Name:      Water,
+			BasePrice: 10,
+		},
+		Food: {
+			Name:      Food,
+			BasePrice: 10,
+		},
 	}
 }
