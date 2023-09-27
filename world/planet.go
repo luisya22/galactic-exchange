@@ -43,7 +43,7 @@ func (w *World) GeneratePlanetsInZone(numPlanets int, zone Zone, zoneType ZoneTy
 		}
 
 		planet := &Planet{
-			Name:          fmt.Sprintf("Planet-%s-%d", zone.Name, i+1),
+			Name:          fmt.Sprintf("%s-Planet-%d", zone.Name, i+1),
 			Location:      planetLocation,
 			Population:    population,
 			DangerLevel:   w.randomInt(zone.DangerRange[0], zone.DangerRange[1]),

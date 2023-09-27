@@ -10,11 +10,11 @@ type World struct {
 	Zones          map[string]*Zone
 	ResourceRarity map[Resource]Rarity
 	AllResources   map[Resource]struct{}
-	AllZoneTypes   map[ZoneName]ZoneType
+	AllZoneTypes   map[LayerName]ZoneType
 	RandomNumber   *rand.Rand
 }
 
-func NewWorld() *World {
+func New() *World {
 
 	randomnumber := rand.New(rand.NewSource(time.Now().UnixNano()))
 
@@ -32,19 +32,19 @@ func NewWorld() *World {
 		Food:  {},
 	}
 
-	allZoneTypes := map[ZoneName]ZoneType{
-		GuardianSectors: {
-			Name:                 GuardianSectors,
+	allZoneTypes := map[LayerName]ZoneType{
+		SectorOne: {
+			Name:                 SectorOne,
 			LowerDanger:          0,
 			HigherDanger:         10,
 			LowerPopulation:      0,
 			HigherPopulation:     7_000_000_000,
 			LowerPlanetsAmount:   1,
 			HigherPlanetsAmount:  10,
-			HabitableProbability: .90,
+			HabitableProbability: .75,
 		},
-		TradeLanes: {
-			Name:                 TradeLanes,
+		SectorTwo: {
+			Name:                 SectorTwo,
 			LowerDanger:          10,
 			HigherDanger:         25,
 			LowerPopulation:      0,
@@ -53,8 +53,8 @@ func NewWorld() *World {
 			HigherPlanetsAmount:  10,
 			HabitableProbability: .50,
 		},
-		OutlawQuadrants: {
-			Name:                 OutlawQuadrants,
+		SectorThree: {
+			Name:                 SectorThree,
 			LowerDanger:          25,
 			HigherDanger:         50,
 			LowerPopulation:      0,
@@ -63,8 +63,8 @@ func NewWorld() *World {
 			HigherPlanetsAmount:  15,
 			HabitableProbability: .20,
 		},
-		DarkMatterZones: {
-			Name:                 DarkMatterZones,
+		SectorFour: {
+			Name:                 SectorFour,
 			LowerDanger:          50,
 			HigherDanger:         100,
 			LowerPopulation:      0,
@@ -82,10 +82,10 @@ func NewWorld() *World {
 		RandomNumber:   randomnumber,
 	}
 
-	world.Zones = make(map[string]*Zone, 100000)
+	world.Zones = make(map[string]*Zone, 1000)
 	world.Planets = make(map[string]*Planet, 100)
 
-	world.GenerateZones(10_000, 100_000)
+	world.GenerateZones(10_000, 1000)
 
 	return world
 

@@ -6,7 +6,7 @@ import (
 )
 
 type ZoneType struct {
-	Name                 ZoneName
+	Name                 LayerName
 	LowerDanger          int
 	HigherDanger         int
 	LowerPopulation      int
@@ -22,39 +22,39 @@ type Zone struct {
 	DangerRange     [2]int
 	ResourceProfile ResourceProfile
 	Planets         map[string]*Planet
-	ZoneType        ZoneName
+	ZoneType        LayerName
 }
 
-type ZoneName string
+type LayerName string
 
 const (
-	GuardianSectors ZoneName = "Guardian Sectors"
-	TradeLanes      ZoneName = "Trade Lanes"
-	OutlawQuadrants ZoneName = "Outlaw Quadrants"
-	DarkMatterZones ZoneName = "Dark Matter Zones"
+	SectorOne   LayerName = "Sector One"
+	SectorTwo   LayerName = "Sector Two"
+	SectorThree LayerName = "Sector Three"
+	SectorFour  LayerName = "Sector Four"
 )
 
 func (w *World) GenerateZones(mapSize float64, numZones int) {
 	type zonePercentages struct {
-		zType      ZoneName
+		zType      LayerName
 		percentage float64
 	}
 	// Define layer percentages
 	zp := []zonePercentages{
 		{
-			zType:      GuardianSectors,
+			zType:      SectorOne,
 			percentage: 0.15,
 		},
 		{
-			zType:      TradeLanes,
+			zType:      SectorTwo,
 			percentage: 0.20,
 		},
 		{
-			zType:      OutlawQuadrants,
+			zType:      SectorThree,
 			percentage: 0.20,
 		},
 		{
-			zType:      DarkMatterZones,
+			zType:      SectorFour,
 			percentage: 0.45,
 		},
 	}
@@ -66,11 +66,8 @@ func (w *World) GenerateZones(mapSize float64, numZones int) {
 	for _, zonePercentage := range zp {
 		currentBoundary += mapSize / 2 * zonePercentage.percentage
 
-		fmt.Println(currentBoundary)
 		layerBoundaries = append(layerBoundaries, currentBoundary)
 	}
-
-	fmt.Println(layerBoundaries)
 
 	cp := 0
 	pcp := 0.0
@@ -106,7 +103,7 @@ func (w *World) GenerateZones(mapSize float64, numZones int) {
 			CentralPoint:    Coordinates{x, y},
 			DangerRange:     [2]int{dangerLevel, dangerLevel + 10},
 			ResourceProfile: GenerateResourceProfile(),
-			ZoneType:        ZoneName(currentZoneType.Name),
+			ZoneType:        LayerName(currentZoneType.Name),
 		}
 
 		planetsAmount := w.randomInt(currentZoneType.LowerPlanetsAmount, currentZoneType.HigherPlanetsAmount)
