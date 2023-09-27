@@ -1,5 +1,5 @@
 # galactic-exchange
-Galactic Exchange is a CLI-based, real-time strategy game designed to be engaging yet respectful of your time. You manage a space-trading faction in a dynamic universe. The game features real-world time as a resource, various NPC factions, and a real-time economy system. Gaex can run in the background, sending you notifications for crucial events, allowing you to focus on your day-to-day tasks while keeping your in-game empire running smoothly.
+Galactic Exchange is a real-time, CLI-based strategy game that allows you to explore, trade, and manage a space-trading faction in a dynamically generated universe. Designed to be both engaging and respectful of your time, the game leverages real-world time as a resource and features a real-time economy system, various NPC factions, and intricate mechanics like interstellar commerce, diplomacy, and conflict. Galactic Exchange can run in the background, sending you notifications for crucial events, allowing you to attend to your real-world responsibilities while keeping your in-game empire running smoothly.
 
 ## :warning: Work in Progress Notice :warning:
 
@@ -9,12 +9,13 @@ This project is currently under development and not all features are implemented
 
 ### MVP (Minimum Viable Product)
 
-- [ ] Universe Generation with different zones and resources
+- [x] Universe Generation with different zones and resources
 - [ ] Basic Resource Management
 - [ ] Simple Trading and Economy System (static prices)
 - [ ] Basic NPC Factions with random behaviors (select random action from list)
 - [ ] Real-world Time Management
 - [ ] Notifications for crucial events
+- [ ] Access game through basic CLI commands
 
 ### Full Game
 
@@ -36,6 +37,7 @@ This project is currently under development and not all features are implemented
 - [ ] **Espionage and Sabotage**: Damage other factions ships or steal plans (buildings, ships, ...)
 - [ ] **Resource Processing**: Convert raw materials into more valuable products.
 - [ ] **Simulation**: Planets should change their resource demand over time (population, world events, technology advancement)
+- [ ] **UI**: CLI commands and TUI to access game features
 
 ### Additional Mechanics
 - [ ] **Stock Market**: Invest in different companies or planets and watch as your portfolio grows or shrinks based on in-game events.
