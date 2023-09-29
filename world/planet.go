@@ -120,7 +120,7 @@ func (w *World) getPlanetReference(planetId string) (*Planet, error) {
 	return planet, nil
 }
 
-func (w *World) SubstractResourcesFromPlanet(planetId string, resourceName Resource, amount int) (int, error) {
+func (w *World) RemoveResourcesFromPlanet(planetId string, resourceName Resource, amount int) (int, error) {
 	w.RW.Lock()
 	planet, err := w.getPlanetReference(planetId)
 	if err != nil {
