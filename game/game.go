@@ -4,36 +4,20 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 
+	"github.com/luisya22/galactic-exchange/base"
+	"github.com/luisya22/galactic-exchange/corporation"
+	"github.com/luisya22/galactic-exchange/crew"
 	"github.com/luisya22/galactic-exchange/world"
 )
 
 type Game struct {
-	World       *world.World
-	PlayerState *PlayerState
-}
-
-// TODO: Maybe move to player package later
-type CorporationState struct {
-	ID                              uint64
-	Name                            string
-	Reputation                      int
-	Credits                         float64
-	Bases                           []*Base
-	CrewMembers                     []*CrewMember
-	IsPlayer                        bool
-	ReputationWithOtherCorporations map[string]int
-}
-
-type Base struct {
-	ID                 uint64
-	Name               string
-	Location           world.Coordinates
-	ResourceProduction map[world.Resource]int
-	StorageCapacity    float64
-	StoredResources    map[world.Resource]int
+	World        *world.World
+	Corporations *corporation.CorpGroup
+	PlayerState  *PlayerState
 }
 
 type Ship struct {
@@ -42,15 +26,7 @@ type Ship struct {
 	Location        world.Coordinates
 	CargoCapacity   float64
 	StoredResources map[string]float64
-	Crew            []*CrewMember
-}
-
-type CrewMember struct {
-	ID         uint64
-	Name       string
-	Species    string
-	Skills     map[string]int
-	AssignedTo uint64
+	Crew            []*crew.CrewMember
 }
 
 /*
@@ -66,7 +42,7 @@ Possible State fields:
 	Etc...
 */
 type PlayerState struct {
-	Corporation *CorporationState
+	Corporation *corporation.Corporation
 	Name        string
 }
 
@@ -74,11 +50,19 @@ func New() *Game {
 	w := world.New()
 
 	playerState := newPlayer()
+	corporations := corporation.NewCorpGroup()
+
+	corporations.Corporations[1] = playerState.Corporation
 
 	return &Game{
-		World:       w,
-		PlayerState: playerState,
+		World:        w,
+		PlayerState:  playerState,
+		Corporations: corporations,
 	}
+}
+
+func bToMb(b uint64) uint64 {
+	return b / 1024 / 1024
 }
 
 func Start() {
@@ -97,8 +81,22 @@ func Start() {
 		fmt.Printf("%v -> %v\n", i.Name, i.BasePrice)
 	}
 
+	var memStats runtime.MemStats
+
+	// Collect memory stats
+
 	// <command> args...
 	for {
+		runtime.ReadMemStats(&memStats)
+
+		// Print memory stats
+		fmt.Printf("Alloc = %v MiB", bToMb(memStats.Alloc))
+		fmt.Printf("\tTotalAlloc = %v MiB", bToMb(memStats.TotalAlloc))
+		fmt.Printf("\tSys = %v MiB", bToMb(memStats.Sys))
+		fmt.Printf("\tNumGC = %v\n", memStats.NumGC)
+		fmt.Printf("\tGoRoutines = %v\n", runtime.NumGoroutine())
+
+		fmt.Println()
 		fmt.Print("Enter command: ")
 		input, err := reader.ReadString('\n')
 		if err != nil {
@@ -130,57 +128,22 @@ func Start() {
 
 // sell <number> <item> <planet>
 func (g *Game) sellResource(command []string) error {
-	var amount int
-	var item world.ResourceInfo
-	var planet *world.Planet
-	var playerResourceAmount int
-	var ok bool
 
 	amount, err := strconv.Atoi(command[1])
 	if err != nil {
-		return fmt.Errorf("Wrong command: the second arg should be a number on the sell command")
+		return fmt.Errorf("%v needs to be an integer", command[1])
 	}
 
-	if item, ok = g.World.AllResources[world.Resource(command[2])]; !ok {
-		return fmt.Errorf("Item not found")
-	}
+	itemName := world.Resource(command[2])
+	planetId := command[3]
 
-	if planet, ok = g.World.Planets[command[3]]; !ok {
-		return fmt.Errorf("Planet not found: %v -> %v", strconv.Quote(command[3]), planet)
-	}
+	return g.SellResource(amount, itemName, planetId, 1)
 
-	// Check that the player has enough of an item
-	if playerResourceAmount, ok = g.PlayerState.Corporation.Bases[0].StoredResources[item.Name]; !ok {
-		return fmt.Errorf("You don't have enough %v: 0", item.Name)
-	}
-
-	if playerResourceAmount < amount {
-		return fmt.Errorf("You don't have enough %s: %d", item.Name, playerResourceAmount)
-	}
-
-	//Save old amounts
-	planetAmount := planet.Resources[item.Name]
-	// Transfer amounts
-	g.PlayerState.Corporation.Bases[0].StoredResources[item.Name] -= amount
-	g.World.Planets[planet.Name].Resources[item.Name] += amount
-	g.PlayerState.Corporation.Credits += item.BasePrice * float64(amount)
-	//Print transfer
-	fmt.Printf(
-		"Transfer:\nPlanet: %v -> %v\nCorporation: %v -> %v\nSell Price: %v\nNew Player Credits Balance: %v\n",
-		planetAmount,
-		g.World.Planets[planet.Name].Resources[item.Name],
-		playerResourceAmount,
-		g.PlayerState.Corporation.Bases[0].StoredResources[item.Name],
-		item.BasePrice,
-		g.PlayerState.Corporation.Credits,
-	)
-
-	return nil
 }
 
 func newPlayer() *PlayerState {
 
-	playerBases := []*Base{
+	playerBases := []*base.Base{
 		{
 			ID:              1,
 			Name:            "Player One Base",
@@ -190,7 +153,7 @@ func newPlayer() *PlayerState {
 		},
 	}
 
-	crewMembers := []*CrewMember{
+	crewMembers := []*crew.CrewMember{
 		{
 			ID:         1,
 			Name:       "Galios Trek",
@@ -199,7 +162,7 @@ func newPlayer() *PlayerState {
 		},
 	}
 
-	playerCorporation := &CorporationState{
+	playerCorporation := &corporation.Corporation{
 		ID:          1,
 		Name:        "Player One Corporation",
 		Reputation:  0,

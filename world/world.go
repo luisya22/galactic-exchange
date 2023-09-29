@@ -2,6 +2,7 @@ package world
 
 import (
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -12,6 +13,7 @@ type World struct {
 	AllResources   map[Resource]ResourceInfo
 	AllZoneTypes   map[LayerName]ZoneType
 	RandomNumber   *rand.Rand
+	RW             sync.RWMutex
 }
 
 func New() *World {

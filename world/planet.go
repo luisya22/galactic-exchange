@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"sync"
 )
 
 type Planet struct {
@@ -15,6 +16,7 @@ type Planet struct {
 	ResourceDemand map[Resource]int
 	IsHabitable    bool
 	IsHarvestable  bool
+	RW             sync.RWMutex
 }
 
 func (w *World) IsHabitable(probability float64) bool {
@@ -51,7 +53,9 @@ func (w *World) GeneratePlanetsInZone(numPlanets int, zone Zone, zoneType ZoneTy
 			IsHarvestable: !isHabitable,
 		}
 
-		planet.Resources = GeneratePlanetResources(*w, zone, *planet)
+		planet.RW.Lock()
+		GeneratePlanetResources(*w, zone, planet)
+		planet.RW.Unlock()
 
 		w.Planets[planet.Name] = planet
 		zonePlanets[planet.Name] = planet
@@ -60,7 +64,7 @@ func (w *World) GeneratePlanetsInZone(numPlanets int, zone Zone, zoneType ZoneTy
 	return zonePlanets
 }
 
-func GeneratePlanetResources(world World, zone Zone, planet Planet) map[Resource]int {
+func GeneratePlanetResources(world World, zone Zone, planet *Planet) {
 	resources := make(map[Resource]int, 4)
 
 	for res := range world.AllResources {
@@ -75,5 +79,85 @@ func GeneratePlanetResources(world World, zone Zone, planet Planet) map[Resource
 	resources[zone.ResourceProfile.Primary] = resources[zone.ResourceProfile.Primary]*world.RandomNumber.Intn(5) + 1
 	resources[zone.ResourceProfile.Secondary] = resources[zone.ResourceProfile.Secondary]*world.RandomNumber.Intn(3) + 1
 
-	return resources
+	planet.Resources = resources
+}
+
+func (p *Planet) copy() Planet {
+	return Planet{
+		Name:           p.Name,
+		Location:       p.Location,
+		Resources:      p.Resources,
+		Population:     p.Population,
+		DangerLevel:    p.DangerLevel,
+		ResourceDemand: p.ResourceDemand,
+		IsHabitable:    p.IsHabitable,
+		IsHarvestable:  p.IsHarvestable,
+	}
+}
+
+func (w *World) GetPlanet(planetId string) (Planet, error) {
+	var planet *Planet
+	var ok bool
+
+	w.RW.RLock()
+	if planet, ok = w.Planets[planetId]; !ok {
+		return Planet{}, fmt.Errorf("Planet not found: %v", planetId)
+	}
+
+	defer w.RW.RUnlock()
+
+	return planet.copy(), nil
+}
+
+func (w *World) getPlanetReference(planetId string) (*Planet, error) {
+	var planet *Planet
+	var ok bool
+
+	if planet, ok = w.Planets[planetId]; !ok {
+		return nil, fmt.Errorf("Planet not found: %v", planetId)
+	}
+
+	return planet, nil
+}
+
+func (w *World) SubstractResourcesFromPlanet(planetId string, resourceName Resource, amount int) (int, error) {
+	w.RW.Lock()
+	planet, err := w.getPlanetReference(planetId)
+	if err != nil {
+		return 0, err
+	}
+	w.RW.Unlock()
+
+	planet.RW.Lock()
+	defer planet.RW.Unlock()
+
+	resources, ok := planet.Resources[resourceName]
+
+	if !ok || amount > resources {
+		return 0, fmt.Errorf("Not enough resources")
+	}
+
+	planet.Resources[resourceName] -= amount
+
+	return planet.Resources[resourceName], nil
+}
+
+func (w *World) AddResourcesToPlanet(planetId string, resourceName Resource, amount int) (int, error) {
+	w.RW.RLock()
+	planet, err := w.getPlanetReference(planetId)
+	if err != nil {
+		return 0, err
+	}
+	w.RW.RUnlock()
+
+	planet.RW.Lock()
+	defer planet.RW.Unlock()
+
+	if _, ok := planet.Resources[resourceName]; !ok {
+		planet.Resources[resourceName] = 0
+	}
+
+	planet.Resources[resourceName] += amount
+
+	return planet.Resources[resourceName], nil
 }

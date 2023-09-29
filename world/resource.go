@@ -30,7 +30,7 @@ type ResourceInfo struct {
 	BasePrice float64
 }
 
-func shouldIncludeResource(world World, res Resource, planet Planet) bool {
+func shouldIncludeResource(world World, res Resource, planet *Planet) bool {
 	rarity := world.ResourceRarity[res]
 	switch rarity {
 	case Abundant:
