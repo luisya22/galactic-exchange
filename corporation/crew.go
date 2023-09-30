@@ -1,4 +1,4 @@
-package crew
+package corporation
 
 type CrewMember struct {
 	ID         uint64

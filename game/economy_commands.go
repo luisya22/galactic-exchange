@@ -6,7 +6,6 @@ import (
 	"github.com/luisya22/galactic-exchange/world"
 )
 
-// sell 100 iron Zone-1-Planet-1
 func (g *Game) SellResource(amount int, itemName world.Resource, planetId string, corporationId uint64) error {
 	var item world.ResourceInfo
 	var planet world.Planet
@@ -67,7 +66,7 @@ func (g *Game) SellResource(amount int, itemName world.Resource, planetId string
 	fmt.Printf("Planet: %v\n", planet.Resources)
 
 	// TODO: Use Mutexes to access
-	//Print transfer
+	//TODO: This info should be returned as copies
 	fmt.Printf(
 		"Transfer:\nPlanet: %v -> %v\nCorporation: %v -> %v\nSell Price: %v\nNew Player Credits Balance: %v\n",
 		planetAmount,

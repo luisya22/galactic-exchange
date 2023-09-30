@@ -1,4 +1,4 @@
-package base
+package corporation
 
 import "github.com/luisya22/galactic-exchange/world"
 

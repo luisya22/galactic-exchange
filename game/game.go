@@ -8,9 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/luisya22/galactic-exchange/base"
 	"github.com/luisya22/galactic-exchange/corporation"
-	"github.com/luisya22/galactic-exchange/crew"
 	"github.com/luisya22/galactic-exchange/world"
 )
 
@@ -26,7 +24,7 @@ type Ship struct {
 	Location        world.Coordinates
 	CargoCapacity   float64
 	StoredResources map[string]float64
-	Crew            []*crew.CrewMember
+	Crew            []*corporation.CrewMember
 }
 
 /*
@@ -111,7 +109,7 @@ func Start() {
 
 		case "sell":
 			if len(command) != 4 {
-				fmt.Printf("Wrong command: the sell command is 'sell <amount> <item> <planetId>")
+				fmt.Printf("Wrong command: the sell command is 'sell <amount> <item> <planetId>'")
 				continue
 			}
 
@@ -119,7 +117,16 @@ func Start() {
 			if err != nil {
 				fmt.Println(err.Error())
 			}
+		case "harvest":
+			if len(command) != 3 {
+				fmt.Printf("Wrong command: the harvest command is 'harvets <planet> <squad>'")
+				continue
+			}
 
+			err := game.harvestPlanet(command)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 		default:
 			fmt.Printf("Wrong command %v\n", command)
 		}
@@ -141,9 +148,17 @@ func (g *Game) sellResource(command []string) error {
 
 }
 
+// harvest <planet> <squad>
+func (g *Game) harvestPlanet(command []string) error {
+	planetId := command[1]
+	squadId := command[2]
+
+	return g.HarvestPlanet(planetId, 1, squadId)
+}
+
 func newPlayer() *PlayerState {
 
-	playerBases := []*base.Base{
+	playerBases := []*corporation.Base{
 		{
 			ID:              1,
 			Name:            "Player One Base",
@@ -153,7 +168,7 @@ func newPlayer() *PlayerState {
 		},
 	}
 
-	crewMembers := []*crew.CrewMember{
+	crewMembers := []*corporation.CrewMember{
 		{
 			ID:         1,
 			Name:       "Galios Trek",

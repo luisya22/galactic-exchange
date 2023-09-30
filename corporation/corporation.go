@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/luisya22/galactic-exchange/base"
-	"github.com/luisya22/galactic-exchange/crew"
 	"github.com/luisya22/galactic-exchange/internal/maputils"
 	"github.com/luisya22/galactic-exchange/world"
 )
@@ -20,8 +18,9 @@ type Corporation struct {
 	Name                            string
 	Reputation                      int
 	Credits                         float64
-	Bases                           []*base.Base
-	CrewMembers                     []*crew.CrewMember
+	Bases                           []*Base
+	CrewMembers                     []*CrewMember
+	Squads                          []*Squad
 	IsPlayer                        bool
 	ReputationWithOtherCorporations map[string]int
 	Rw                              sync.RWMutex
@@ -62,10 +61,10 @@ func (c *CorpGroup) findCorporationReference(corporationId uint64) (*Corporation
 }
 
 func (c *Corporation) copy() Corporation {
-	basesCopy := make([]*base.Base, len(c.Bases))
+	basesCopy := make([]*Base, len(c.Bases))
 	copy(c.Bases, c.Bases)
 
-	crewMembersCopy := make([]*crew.CrewMember, len(c.CrewMembers))
+	crewMembersCopy := make([]*CrewMember, len(c.CrewMembers))
 	copy(c.CrewMembers, c.CrewMembers)
 
 	return Corporation{
