@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/luisya22/galactic-exchange/channel"
 	"github.com/luisya22/galactic-exchange/internal/maputils"
 	"github.com/luisya22/galactic-exchange/world"
 )
@@ -11,6 +12,8 @@ import (
 type CorpGroup struct {
 	Corporations map[uint64]*Corporation
 	RW           sync.RWMutex
+	Workers      int
+	CorpChan     chan channel.CorpCommand
 }
 
 type Corporation struct {
@@ -26,9 +29,11 @@ type Corporation struct {
 	Rw                              sync.RWMutex
 }
 
-func NewCorpGroup() *CorpGroup {
+func NewCorpGroup(gameChannels *channel.GameChannels) *CorpGroup {
 	return &CorpGroup{
 		Corporations: make(map[uint64]*Corporation, 50),
+		Workers:      100,
+		CorpChan:     gameChannels.CorpChannel,
 	}
 }
 

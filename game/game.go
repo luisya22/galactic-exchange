@@ -8,23 +8,17 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/luisya22/galactic-exchange/channel"
 	"github.com/luisya22/galactic-exchange/corporation"
+	"github.com/luisya22/galactic-exchange/mission"
 	"github.com/luisya22/galactic-exchange/world"
 )
 
 type Game struct {
-	World        *world.World
-	Corporations *corporation.CorpGroup
-	PlayerState  *PlayerState
-}
-
-type Ship struct {
-	ID              uint64
-	Name            string
-	Location        world.Coordinates
-	CargoCapacity   float64
-	StoredResources map[string]float64
-	Crew            []*corporation.CrewMember
+	World            *world.World
+	Corporations     *corporation.CorpGroup
+	PlayerState      *PlayerState
+	MissionScheduler *mission.MissionScheduler
 }
 
 /*
@@ -45,17 +39,26 @@ type PlayerState struct {
 }
 
 func New() *Game {
-	w := world.New()
+	gameChannels := &channel.GameChannels{
+		WorldChannel:   make(chan channel.WorldCommand, 100),
+		CorpChannel:    make(chan channel.CorpCommand, 100),
+		MissionChannel: make(chan channel.MissionCommand, 100),
+	}
+
+	w := world.New(gameChannels)
 
 	playerState := newPlayer()
-	corporations := corporation.NewCorpGroup()
+	corporations := corporation.NewCorpGroup(gameChannels)
 
 	corporations.Corporations[1] = playerState.Corporation
 
+	missionScheduler := mission.NewMissionScheduler(gameChannels)
+
 	return &Game{
-		World:        w,
-		PlayerState:  playerState,
-		Corporations: corporations,
+		World:            w,
+		PlayerState:      playerState,
+		Corporations:     corporations,
+		MissionScheduler: missionScheduler,
 	}
 }
 
@@ -67,6 +70,8 @@ func Start() {
 	reader := bufio.NewReader(os.Stdin)
 
 	game := New()
+
+	go game.MissionScheduler.Run()
 
 	for k, p := range game.World.Planets {
 		fmt.Printf("Planets: %v -> %v -> %v -> %v\n", len(game.World.Planets), k, strconv.Quote(p.Name), game.World.Planets["Zone-1-Planet-1"])
@@ -151,7 +156,10 @@ func (g *Game) sellResource(command []string) error {
 // harvest <planet> <squad>
 func (g *Game) harvestPlanet(command []string) error {
 	planetId := command[1]
-	squadId := command[2]
+	squadId, err := strconv.Atoi(command[2])
+	if err != nil {
+		return fmt.Errorf("%v needs to be an integer", command[2])
+	}
 
 	return g.HarvestPlanet(planetId, 1, squadId)
 }

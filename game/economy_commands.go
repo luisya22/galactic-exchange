@@ -6,6 +6,7 @@ import (
 	"github.com/luisya22/galactic-exchange/world"
 )
 
+// TODO: Amounts should be reflected after the time distance is elapsed
 func (g *Game) SellResource(amount int, itemName world.Resource, planetId string, corporationId uint64) error {
 	var item world.ResourceInfo
 	var planet world.Planet

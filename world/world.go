@@ -4,6 +4,8 @@ import (
 	"math/rand"
 	"sync"
 	"time"
+
+	"github.com/luisya22/galactic-exchange/channel"
 )
 
 type World struct {
@@ -14,9 +16,11 @@ type World struct {
 	AllZoneTypes   map[LayerName]ZoneType
 	RandomNumber   *rand.Rand
 	RW             sync.RWMutex
+	Workers        int
+	WorldChan      chan channel.WorldCommand
 }
 
-func New() *World {
+func New(gameChannels *channel.GameChannels) *World {
 
 	randomnumber := rand.New(rand.NewSource(time.Now().UnixNano()))
 
@@ -76,6 +80,8 @@ func New() *World {
 		AllResources:   allResources,
 		AllZoneTypes:   allZoneTypes,
 		RandomNumber:   randomnumber,
+		Workers:        100,
+		WorldChan:      gameChannels.WorldChannel,
 	}
 
 	world.Zones = make(map[string]*Zone, 1000)
@@ -83,8 +89,9 @@ func New() *World {
 
 	world.GenerateZones(10_000, 1000)
 
-	return world
+	go world.listen()
 
+	return world
 }
 
 func (w *World) randomInt(min, max int) int {
