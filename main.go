@@ -8,52 +8,7 @@ import (
 )
 
 func main() {
-
 	game.Start()
-
-	// type habitableInfo struct {
-	// 	amount    int
-	// 	habitable int
-	// }
-	//
-	// habitablePerZoneType := make(map[world.LayerName]*habitableInfo, 4)
-	// for _, z := range game.World.Zones {
-	// 	if _, ok := habitablePerZoneType[z.ZoneType]; !ok {
-	// 		habitablePerZoneType[z.ZoneType] = &habitableInfo{}
-	// 	}
-	//
-	// 	for _, p := range z.Planets {
-	// 		hi := habitablePerZoneType[z.ZoneType]
-	//
-	// 		hi.amount++
-	// 		if p.IsHabitable {
-	// 			hi.habitable++
-	// 		}
-	// 	}
-	// }
-	//
-	// habitablePlanets := 0
-	// for _, p := range game.World.Planets {
-	//
-	// 	if p.IsHabitable {
-	// 		habitablePlanets++
-	// 	}
-	// }
-	//
-	// fmt.Println("Planets: ", len(game.World.Planets))
-	// fmt.Println("Habitable Planets: ", habitablePlanets)
-	//
-	// for key, val := range habitablePerZoneType {
-	// 	fmt.Printf("Layer %s: Planets - %d; Habitable Planets - %d\n", key, val.amount, val.habitable)
-	// }
-	// // PlotZonesASCII(*world)
-	//
-	// fmt.Printf(
-	// 	"Player: %v\nCorporationName: %v\nLocation:%v\n",
-	// 	game.PlayerState.Name,
-	// 	game.PlayerState.Corporation.Name,
-	// 	game.PlayerState.Corporation.Bases[0].Location,
-	// )
 }
 
 const gridWidth, gridHeight = 500, 500

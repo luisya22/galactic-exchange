@@ -29,12 +29,6 @@ type Mission struct {
 	Resources       []string
 }
 
-// Misión va a un planeta ha hacer algo
-// Corporation
-// Squad
-// Planet
-// Type
-
 // startMission
 // missionStatus -> createEvents
 // events -> sendMissionStatus, after each event send notification
@@ -104,13 +98,6 @@ func (ms *MissionScheduler) StartMission(m Mission) {
 	}
 
 }
-
-// Id        string
-// MissionId string
-// Time      time.Time
-// Cancelled bool
-// Index     int
-// Execute   func()
 
 func (ms *MissionScheduler) CreateSquadMission(m Mission) {
 	// Create Arrive event with function

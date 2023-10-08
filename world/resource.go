@@ -59,14 +59,6 @@ func GenerateResourceProfile() ResourceProfile {
 	}
 }
 
-// map[Resource]struct{}{
-// 		Gold:  {},
-// 		Iron:  {},
-// 		Water: {},
-// 		Food:  {},
-// 	}
-//
-
 func CreateWorldResources() map[Resource]ResourceInfo {
 	return map[Resource]ResourceInfo{
 		Gold: {
