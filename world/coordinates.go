@@ -7,9 +7,9 @@ type Coordinates struct {
 	Y float64
 }
 
-func Distance(p1, p2 Planet) float64 {
-	dx := math.Pow(p2.Location.X-p1.Location.X, 2)
-	dy := math.Pow(p2.Location.Y-p1.Location.Y, 2)
+func Distance(p1, p2 Coordinates) float64 {
+	dx := math.Pow(p2.X-p1.X, 2)
+	dy := math.Pow(p2.Y-p1.Y, 2)
 
 	return math.Sqrt(dx + dy)
 }

@@ -50,7 +50,7 @@ func TestDistance(t *testing.T) {
 	for _, tt := range testMap {
 		t.Run(tt.name, func(t *testing.T) {
 
-			dis := world.Distance(*tt.planet1, *tt.planet2)
+			dis := world.Distance(tt.planet1.Location, tt.planet2.Location)
 
 			if !almostEqual(dis, tt.wants) {
 				t.Errorf("error: wants %v; got: %v; diff: %v", tt.wants, dis, math.Abs(dis-tt.wants))
