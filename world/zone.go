@@ -14,6 +14,8 @@ type ZoneType struct {
 	LowerPlanetsAmount   int
 	HigherPlanetsAmount  int
 	HabitableProbability float64
+	Index                int
+	MapPercentage        float64
 }
 
 type Zone struct {
@@ -34,75 +36,55 @@ const (
 	SectorFour  LayerName = "Sector Four"
 )
 
-func (w *World) GenerateZones(mapSize float64, numZones int) {
+func (w *World) GenerateZones(numZones int) {
 	type zonePercentages struct {
 		zType      LayerName
 		percentage float64
 	}
-	// Define layer percentages
-	zp := []zonePercentages{
-		{
-			zType:      SectorOne,
-			percentage: 0.15,
-		},
-		{
-			zType:      SectorTwo,
-			percentage: 0.20,
-		},
-		{
-			zType:      SectorThree,
-			percentage: 0.20,
-		},
-		{
-			zType:      SectorFour,
-			percentage: 0.45,
-		},
-	}
 
-	layerBoundaries := []float64{}
-
-	// Calculate layer boundaries
-	currentBoundary := 0.0
-	for _, zonePercentage := range zp {
-		currentBoundary += mapSize / 2 * zonePercentage.percentage
-
-		layerBoundaries = append(layerBoundaries, currentBoundary)
-	}
+	fmt.Println(w.LayerBoundaries)
 
 	cp := 0
 	pcp := 0.0
 	for i := 0; i < numZones; i++ {
-		if float64(numZones)*(pcp+zp[cp].percentage) < float64(i) {
-			pcp += zp[cp].percentage
+		currentZone, err := w.GetZoneByIndex(cp)
+		if err != nil {
+			// TODO: Handle error correctly
+			continue
+		}
+		if float64(numZones)*(pcp+currentZone.MapPercentage) < float64(i) {
+			pcp += currentZone.MapPercentage
 			cp++
+			currentZone, err = w.GetZoneByIndex(cp)
+			if err != nil {
+				continue
+			}
 		}
 
 		// Calculate location
 		innerRadius := 0.0
 
 		if cp != 0 {
-			innerRadius = layerBoundaries[cp-1]
+			innerRadius = w.LayerBoundaries[cp-1]
 		}
-		outerRadius := layerBoundaries[cp]
+		outerRadius := w.LayerBoundaries[cp]
 
 		radius := innerRadius + (outerRadius-innerRadius)*w.RandomNumber.Float64()
 		angle := 2 * math.Pi * w.RandomNumber.Float64()
 
-		x := mapSize/2 + radius*math.Cos(angle)
-		y := mapSize/2 + radius*math.Sin(angle)
+		x := w.Size/2 + radius*math.Cos(angle)
+		y := w.Size/2 + radius*math.Sin(angle)
 
-		currentZoneType := w.AllZoneTypes[zp[cp].zType]
-
-		dangerLevel := w.randomInt(currentZoneType.LowerDanger, currentZoneType.HigherDanger)
+		dangerLevel := w.randomInt(currentZone.LowerDanger, currentZone.HigherDanger)
 		zone := Zone{
 			Name:            fmt.Sprintf("Zone-%d", i+1),
 			CentralPoint:    Coordinates{x, y},
 			DangerRange:     [2]int{dangerLevel, dangerLevel + 10},
 			ResourceProfile: GenerateResourceProfile(),
-			ZoneType:        LayerName(currentZoneType.Name),
+			ZoneType:        LayerName(currentZone.Name),
 		}
 
-		planetsAmount := w.randomInt(currentZoneType.LowerPlanetsAmount, currentZoneType.HigherPlanetsAmount)
+		planetsAmount := w.randomInt(currentZone.LowerPlanetsAmount, currentZone.HigherPlanetsAmount)
 
 		zone.Planets = w.GeneratePlanetsInZone(planetsAmount, zone, w.AllZoneTypes[zone.ZoneType])
 

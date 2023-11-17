@@ -1,6 +1,6 @@
 package corporation
 
-import "github.com/luisya22/galactic-exchange/channel"
+import "github.com/luisya22/galactic-exchange/gamecomm"
 
 type CorpResponse struct {
 	Err error
@@ -13,11 +13,11 @@ func (cg *CorpGroup) listen() {
 }
 
 // TODO: add WaitGroup to all the
-func (cg *CorpGroup) worker(ch <-chan channel.CorpCommand) {
+func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 
 	for command := range ch {
 		switch command.Action {
-		case channel.GetSquad:
+		case gamecomm.GetSquad:
 			// TODO: get corporation
 			// squad, err := cg.
 		}

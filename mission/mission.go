@@ -6,14 +6,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/luisya22/galactic-exchange/channel"
-	"github.com/luisya22/galactic-exchange/world"
+	"github.com/luisya22/galactic-exchange/gamecomm"
 )
 
 type MissionScheduler struct {
 	missions       map[string]*Mission
 	eventScheduler *EventScheduler
-	missionChannel chan channel.MissionCommand
+	missionChannel chan gamecomm.MissionCommand
 	RW             sync.RWMutex
 }
 
@@ -25,7 +24,7 @@ type Mission struct {
 	DestinationTime time.Time
 	ReturnalTime    time.Time
 	Status          string
-	Type            channel.MissionType
+	Type            gamecomm.MissionType
 	Resources       []string
 }
 
@@ -34,11 +33,13 @@ type Mission struct {
 // events -> sendMissionStatus, after each event send notification
 // if all events received, end mission and send notification
 
-func NewMissionScheduler(gameChannels *channel.GameChannels) *MissionScheduler {
+func NewMissionScheduler(gameChannels *gamecomm.GameChannels) *MissionScheduler {
 
-	eventScheduler := NewEventScheduler(gameChannels)
+	missions := make(map[string]*Mission, 0)
+	eventScheduler := NewEventScheduler(gameChannels, missions)
+
 	return &MissionScheduler{
-		missions:       make(map[string]*Mission, 0),
+		missions:       missions,
 		eventScheduler: eventScheduler,
 		missionChannel: gameChannels.MissionChannel,
 	}
@@ -59,7 +60,7 @@ func (ms *MissionScheduler) Run() {
 	}
 }
 
-func CreateMission(mc channel.MissionCommand) (Mission, error) {
+func CreateMission(mc gamecomm.MissionCommand) (Mission, error) {
 
 	uuid, err := uuid.NewUUID()
 	if err != nil {
@@ -75,7 +76,7 @@ func CreateMission(mc channel.MissionCommand) (Mission, error) {
 		PlanetId:        mc.PlanetId,
 		DestinationTime: mc.DestinationTime,
 		ReturnalTime:    mc.ReturnalTime,
-		Status:          mc.Status,
+		Status:          "In Progress",
 		Type:            mc.Type,
 		Resources:       mc.Resources,
 	}
@@ -89,7 +90,7 @@ func (ms *MissionScheduler) StartMission(m Mission) {
 	ms.RW.Unlock()
 
 	switch m.Type {
-	case channel.SquadMission:
+	case gamecomm.SquadMission:
 		ms.CreateSquadMission(m)
 	default:
 		ms.RW.Lock()
@@ -97,57 +98,4 @@ func (ms *MissionScheduler) StartMission(m Mission) {
 		ms.RW.Unlock()
 	}
 
-}
-
-func (ms *MissionScheduler) CreateSquadMission(m Mission) {
-	// Create Arrive event with function
-	// - This would send message that we arrive to the mission place
-
-	// Create Gather event with function
-	// - This would Gather the resources
-	harvestingEvent := Event{
-		MissionId: m.Id,
-		Time:      time.Now().Add(1 * time.Minute),
-		Cancelled: false,
-		Execute: func(gameChannels *channel.GameChannels) {
-
-			responseChan := make(chan any)
-
-			for _, resource := range m.Resources {
-				// Generate harvested resourcesAmount
-
-				//TODO: Get Squads to calculate Ship and Crew Bonuses
-
-				// Remove Resources from planet
-				gameChannels.WorldChannel <- channel.WorldCommand{
-					PlanetId:        m.PlanetId,
-					Action:          channel.AddResourcesToPlanet,
-					Amount:          100,
-					ResponseChannel: responseChan,
-					Resource:        resource,
-				}
-
-				// Add Resources to Squad
-				// TODO: Add Resources to Squad on the Corporation
-			}
-
-			// TODO: Check the thing with the locks and copies
-			res := <-responseChan
-
-			worldResponse := res.(world.WorldResponse)
-
-			close(responseChan)
-
-			fmt.Println(worldResponse.Planet)
-		},
-	}
-
-	ms.eventScheduler.Schedule(&harvestingEvent)
-
-	// Create Return event with function
-	// - This would add resources to corporation
-
-	//TODO: Add Resources to Base
-
-	// Each event should be pushed to the event scheduler and have a way to communicate back to the mission scheduler
 }

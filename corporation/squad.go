@@ -11,6 +11,7 @@ type Squad struct {
 	Ships       *ship.Ship
 	CrewMembers []*CrewMember
 	Cargo       map[world.Resource]int
+	Location    world.Coordinates
 	// Officers []Officers   coming soon...
 }
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/luisya22/galactic-exchange/channel"
+	"github.com/luisya22/galactic-exchange/gamecomm"
 	"github.com/luisya22/galactic-exchange/internal/maputils"
 	"github.com/luisya22/galactic-exchange/world"
 )
@@ -13,7 +13,7 @@ type CorpGroup struct {
 	Corporations map[uint64]*Corporation
 	RW           sync.RWMutex
 	Workers      int
-	CorpChan     chan channel.CorpCommand
+	CorpChan     chan gamecomm.CorpCommand
 }
 
 type Corporation struct {
@@ -29,12 +29,16 @@ type Corporation struct {
 	Rw                              sync.RWMutex
 }
 
-func NewCorpGroup(gameChannels *channel.GameChannels) *CorpGroup {
+func NewCorpGroup(gameChannels *gamecomm.GameChannels) *CorpGroup {
 	return &CorpGroup{
 		Corporations: make(map[uint64]*Corporation, 50),
 		Workers:      100,
 		CorpChan:     gameChannels.CorpChannel,
 	}
+}
+
+func (cg *CorpGroup) Run() {
+	cg.listen()
 }
 
 func (c *CorpGroup) FindCorporation(corporationId uint64) (Corporation, error) {

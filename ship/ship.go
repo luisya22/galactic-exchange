@@ -11,6 +11,7 @@ type Ship struct {
 	ActualHealth int
 	MaxCargo     int
 	Location     world.Coordinates
+	Speed        int
 	// Attributes
 	// Upgrades
 	// StoredResources

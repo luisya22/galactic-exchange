@@ -1,26 +1,29 @@
 package world
 
 import (
+	"fmt"
 	"math/rand"
 	"sync"
 	"time"
 
-	"github.com/luisya22/galactic-exchange/channel"
+	"github.com/luisya22/galactic-exchange/gamecomm"
 )
 
 type World struct {
-	Planets        map[string]*Planet
-	Zones          map[string]*Zone
-	ResourceRarity map[Resource]Rarity
-	AllResources   map[Resource]ResourceInfo
-	AllZoneTypes   map[LayerName]ZoneType
-	RandomNumber   *rand.Rand
-	RW             sync.RWMutex
-	Workers        int
-	WorldChan      chan channel.WorldCommand
+	Planets         map[string]*Planet
+	Zones           map[string]*Zone
+	ResourceRarity  map[Resource]Rarity
+	AllResources    map[Resource]ResourceInfo
+	AllZoneTypes    map[LayerName]ZoneType
+	LayerBoundaries []float64
+	RandomNumber    *rand.Rand
+	RW              sync.RWMutex
+	Workers         int
+	WorldChan       chan gamecomm.WorldCommand
+	Size            float64
 }
 
-func New(gameChannels *channel.GameChannels) *World {
+func New(gameChannels *gamecomm.GameChannels) *World {
 
 	randomnumber := rand.New(rand.NewSource(time.Now().UnixNano()))
 
@@ -32,7 +35,35 @@ func New(gameChannels *channel.GameChannels) *World {
 	}
 
 	allResources := CreateWorldResources()
-	allZoneTypes := map[LayerName]ZoneType{
+	allZoneTypes := CreateZoneTypes()
+	world := &World{
+		ResourceRarity: resourceRarity,
+		AllResources:   allResources,
+		AllZoneTypes:   allZoneTypes,
+		RandomNumber:   randomnumber,
+		Workers:        100,
+		WorldChan:      gameChannels.WorldChannel,
+		Size:           10_000,
+	}
+
+	world.Zones = make(map[string]*Zone, 1000)
+	world.Planets = make(map[string]*Planet, 8000)
+
+	world.LayerBoundaries = GenerateLayerBoundaries(world)
+
+	world.GenerateZones(1000)
+
+	go world.listen()
+
+	return world
+}
+
+func (w *World) randomInt(min, max int) int {
+	return min + w.RandomNumber.Intn(max-min+1)
+}
+
+func CreateZoneTypes() map[LayerName]ZoneType {
+	return map[LayerName]ZoneType{
 		SectorOne: {
 			Name:                 SectorOne,
 			LowerDanger:          0,
@@ -42,6 +73,8 @@ func New(gameChannels *channel.GameChannels) *World {
 			LowerPlanetsAmount:   1,
 			HigherPlanetsAmount:  10,
 			HabitableProbability: .75,
+			Index:                0,
+			MapPercentage:        .15,
 		},
 		SectorTwo: {
 			Name:                 SectorTwo,
@@ -52,6 +85,8 @@ func New(gameChannels *channel.GameChannels) *World {
 			LowerPlanetsAmount:   1,
 			HigherPlanetsAmount:  10,
 			HabitableProbability: .50,
+			Index:                1,
+			MapPercentage:        .20,
 		},
 		SectorThree: {
 			Name:                 SectorThree,
@@ -62,6 +97,8 @@ func New(gameChannels *channel.GameChannels) *World {
 			LowerPlanetsAmount:   1,
 			HigherPlanetsAmount:  15,
 			HabitableProbability: .20,
+			Index:                2,
+			MapPercentage:        .20,
 		},
 		SectorFour: {
 			Name:                 SectorFour,
@@ -72,28 +109,33 @@ func New(gameChannels *channel.GameChannels) *World {
 			LowerPlanetsAmount:   1,
 			HigherPlanetsAmount:  20,
 			HabitableProbability: 0,
+			Index:                3,
+			MapPercentage:        .45,
 		},
 	}
 
-	world := &World{
-		ResourceRarity: resourceRarity,
-		AllResources:   allResources,
-		AllZoneTypes:   allZoneTypes,
-		RandomNumber:   randomnumber,
-		Workers:        100,
-		WorldChan:      gameChannels.WorldChannel,
-	}
-
-	world.Zones = make(map[string]*Zone, 1000)
-	world.Planets = make(map[string]*Planet, 100)
-
-	world.GenerateZones(10_000, 1000)
-
-	go world.listen()
-
-	return world
 }
 
-func (w *World) randomInt(min, max int) int {
-	return min + w.RandomNumber.Intn(max-min+1)
+func GenerateLayerBoundaries(w *World) []float64 {
+	layerBoundaries := []float64{}
+
+	// Calculate layer boundaries
+	currentBoundary := 0.0
+	for _, z := range w.AllZoneTypes {
+		currentBoundary += w.Size / 2 * z.MapPercentage
+
+		layerBoundaries = append(layerBoundaries, currentBoundary)
+	}
+
+	return layerBoundaries
+}
+
+func (w *World) GetZoneByIndex(index int) (*ZoneType, error) {
+	for _, z := range w.AllZoneTypes {
+		if z.Index == index {
+			return &z, nil
+		}
+	}
+
+	return nil, fmt.Errorf("error: zone not found with inde %v", index)
 }

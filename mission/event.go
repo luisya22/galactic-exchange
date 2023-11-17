@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/luisya22/galactic-exchange/channel"
+	"github.com/luisya22/galactic-exchange/gamecomm"
 )
 
 type Event struct {
@@ -15,21 +15,23 @@ type Event struct {
 	Time      time.Time
 	Cancelled bool
 	Index     int
-	Execute   func(*channel.GameChannels)
+	Execute   func(*Mission, *gamecomm.GameChannels)
 }
 
 type EventScheduler struct {
 	events       map[string]*Event
 	queue        EventQueue
 	rw           sync.RWMutex
-	gameChannels *channel.GameChannels
+	gameChannels *gamecomm.GameChannels
+	missions     map[string]*Mission
 }
 
-func NewEventScheduler(gameChannels *channel.GameChannels) *EventScheduler {
+func NewEventScheduler(gameChannels *gamecomm.GameChannels, missions map[string]*Mission) *EventScheduler {
 	return &EventScheduler{
 		events:       make(map[string]*Event),
 		queue:        make(EventQueue, 0),
 		gameChannels: gameChannels,
+		missions:     missions,
 	}
 }
 
@@ -72,7 +74,8 @@ func (s *EventScheduler) Run() {
 
 		now := time.Now()
 		if now.After(event.Time) {
-			event.Execute(s.gameChannels)
+			mission := s.missions[event.MissionId]
+			event.Execute(mission, s.gameChannels)
 			s.rw.Lock()
 			delete(s.events, event.Id)
 			s.rw.Unlock()

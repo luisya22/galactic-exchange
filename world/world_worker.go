@@ -1,6 +1,6 @@
 package world
 
-import "github.com/luisya22/galactic-exchange/channel"
+import "github.com/luisya22/galactic-exchange/gamecomm"
 
 type WorldResponse struct {
 	Planet Planet
@@ -15,11 +15,11 @@ func (w *World) listen() {
 }
 
 // TODO: add WaitGroup to all the
-func (w *World) worker(ch <-chan channel.WorldCommand) {
+func (w *World) worker(ch <-chan gamecomm.WorldCommand) {
 
 	for command := range ch {
 		switch command.Action {
-		case channel.GetPlanet:
+		case gamecomm.GetPlanet:
 			planet, err := w.GetPlanet(command.PlanetId)
 			if err != nil {
 				command.ResponseChannel <- WorldResponse{Err: err}
@@ -30,14 +30,14 @@ func (w *World) worker(ch <-chan channel.WorldCommand) {
 				Planet: planet.copy(),
 				Err:    nil,
 			}
-		case channel.AddResourcesToPlanet:
+		case gamecomm.AddResourcesToPlanet:
 			amount, err := w.AddResourcesToPlanet(command.PlanetId, Resource(command.Resource), command.Amount)
 
 			command.ResponseChannel <- WorldResponse{
 				Amount: amount,
 				Err:    err,
 			}
-		case channel.RemoveResourcesFromPlanet:
+		case gamecomm.RemoveResourcesFromPlanet:
 			amount, err := w.RemoveResourcesFromPlanet(command.PlanetId, Resource(command.Resource), command.Amount)
 
 			command.ResponseChannel <- WorldResponse{

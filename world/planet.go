@@ -20,7 +20,6 @@ type Planet struct {
 }
 
 func (w *World) IsHabitable(probability float64) bool {
-
 	generated := w.RandomNumber.Float64()
 	return generated < probability
 }
