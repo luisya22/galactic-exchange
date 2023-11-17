@@ -97,5 +97,4 @@ func (ms *MissionScheduler) StartMission(m Mission) {
 		delete(ms.missions, m.Id)
 		ms.RW.Unlock()
 	}
-
 }
