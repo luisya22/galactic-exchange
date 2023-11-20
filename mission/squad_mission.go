@@ -91,37 +91,100 @@ func arrivingEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 // - This would Gather the resources
 func harvestingEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 
-	responseChan := make(chan any)
+	// Get Squad
+	squad, err := getSquad(mission.CorporationId, mission.Squads[0], gameChannels)
+	if err != nil {
+		fmt.Println(err.Error()) //TODO: Handle error
+	}
 
 	for _, resource := range mission.Resources {
 		// Generate harvested resourcesAmount
 
-		//TODO: Get Squads to calculate Ship and Crew Bonuses
+		bonus := squad.GetHarvestingBonus()
+		resourceAmount := 100 * bonus
 
 		// Remove Resources from planet
-		gameChannels.WorldChannel <- gamecomm.WorldCommand{
-			PlanetId:        mission.PlanetId,
-			Action:          gamecomm.AddResourcesToPlanet,
-			Amount:          100,
-			ResponseChannel: responseChan,
-			Resource:        resource,
-		}
+		removeResourceFromPlanet(mission.PlanetId, resourceAmount, resource, gameChannels)
 
 		// Add Resources to Squad
-		// TODO: Add Resources to Squad on the Corporation
+		addResourcesToSquad(mission.CorporationId, resourceAmount, resource, gameChannels)
 	}
-
-	// TODO: Check the thing with the locks and copies
-	res := <-responseChan
-
-	worldResponse := res.(world.WorldResponse)
-
-	close(responseChan)
-
-	fmt.Println(worldResponse.Planet)
 
 	//TODO: Send message
 
+}
+
+func getSquad(corporationId uint64, squadId int, gameChannels *gamecomm.GameChannels) (corporation.Squad, error) {
+
+	squadResChan := make(chan any)
+	corpCommand := gamecomm.CorpCommand{
+		Action:          gamecomm.GetSquad,
+		ResponseChannel: squadResChan,
+		CorporationId:   corporationId,
+		SquadIndex:      squadId,
+	}
+
+	gameChannels.CorpChannel <- corpCommand
+
+	squadRes := <-squadResChan
+
+	close(squadResChan)
+
+	squad, ok := squadRes.(corporation.Squad)
+	if !ok {
+		return corporation.Squad{}, fmt.Errorf("world channel returned wrong squad object")
+	}
+
+	return squad, nil
+
+}
+
+func removeResourceFromPlanet(planetId string, resourceAmount int, resource string, gameChannels *gamecomm.GameChannels) error {
+	responseChan := make(chan any)
+	gameChannels.WorldChannel <- gamecomm.WorldCommand{
+		PlanetId:        planetId,
+		Action:          gamecomm.AddResourcesToPlanet,
+		Amount:          resourceAmount,
+		ResponseChannel: responseChan,
+		Resource:        resource,
+	}
+
+	responseChanRes := <-responseChan
+
+	err := responseChanRes.(error)
+	if err != nil {
+		return err // TODO: Handle error correctly
+	}
+
+	close(responseChan)
+
+	return nil
+}
+
+func addResourcesToSquad(corporationId uint64, resourceAmount int, resource string, gameChannels *gamecomm.GameChannels) error {
+	squadResChan := make(chan any)
+
+	gameChannels.CorpChannel <- gamecomm.CorpCommand{
+		Action:          gamecomm.AddResourcesToSquad,
+		ResponseChannel: squadResChan,
+		CorporationId:   corporationId,
+		Resource:        resource,
+		Amount:          resourceAmount,
+	}
+
+	squadRes := <-squadResChan
+
+	err, ok := squadRes.(error)
+	if !ok {
+		return fmt.Errorf("error on communication with CorpChannel, did not send error")
+	}
+	if err != nil {
+		return err
+	}
+
+	close(squadResChan)
+
+	return nil
 }
 
 // - This would add resources to corporation
