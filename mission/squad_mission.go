@@ -79,12 +79,8 @@ func (ms *MissionScheduler) CreateSquadMission(m Mission) {
 
 	ms.eventScheduler.Schedule(&re)
 
-	//TODO: Add Resources to Base
-
 	// Each event should be pushed to the event scheduler and have a way to communicate back to the mission scheduler
 }
-
-// TODO: LUIS AQUI: Implementa las 3 funciones de abajo
 
 // - This would send message that we arrive to the mission place
 func arrivingEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {

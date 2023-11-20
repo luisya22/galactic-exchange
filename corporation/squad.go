@@ -15,6 +15,10 @@ type Squad struct {
 	// Officers []Officers   coming soon...
 }
 
+func (s Squad) GetHarvestingBonus() int {
+	return 1
+}
+
 func (c *Corporation) GetSquad(squadIndex int) (Squad, error) {
 	c.Rw.RLock()
 	defer c.Rw.RUnlock()

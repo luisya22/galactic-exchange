@@ -41,6 +41,8 @@ type CorpCommand struct {
 	ResponseChannel chan any
 	CorporationId   uint64
 	SquadIndex      int
+	Resource        string
+	Amount          int
 }
 
 type CommandType int
