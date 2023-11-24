@@ -78,8 +78,6 @@ func (ms *MissionScheduler) CreateSquadMission(m Mission) {
 	}
 
 	ms.eventScheduler.Schedule(&re)
-
-	// Each event should be pushed to the event scheduler and have a way to communicate back to the mission scheduler
 }
 
 // - This would send message that we arrive to the mission place
@@ -114,9 +112,12 @@ func harvestingEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 
 }
 
+// TODO: Close channels on producers
+
 func getSquad(corporationId uint64, squadId int, gameChannels *gamecomm.GameChannels) (corporation.Squad, error) {
 
 	squadResChan := make(chan any)
+	defer close(squadResChan)
 	corpCommand := gamecomm.CorpCommand{
 		Action:          gamecomm.GetSquad,
 		ResponseChannel: squadResChan,
@@ -127,8 +128,6 @@ func getSquad(corporationId uint64, squadId int, gameChannels *gamecomm.GameChan
 	gameChannels.CorpChannel <- corpCommand
 
 	squadRes := <-squadResChan
-
-	close(squadResChan)
 
 	squad, ok := squadRes.(corporation.Squad)
 	if !ok {
@@ -141,6 +140,8 @@ func getSquad(corporationId uint64, squadId int, gameChannels *gamecomm.GameChan
 
 func removeResourceFromPlanet(planetId string, resourceAmount int, resource string, gameChannels *gamecomm.GameChannels) error {
 	responseChan := make(chan any)
+	defer close(responseChan)
+
 	gameChannels.WorldChannel <- gamecomm.WorldCommand{
 		PlanetId:        planetId,
 		Action:          gamecomm.AddResourcesToPlanet,
@@ -156,13 +157,12 @@ func removeResourceFromPlanet(planetId string, resourceAmount int, resource stri
 		return err // TODO: Handle error correctly
 	}
 
-	close(responseChan)
-
 	return nil
 }
 
 func addResourcesToSquad(corporationId uint64, resourceAmount int, resource string, gameChannels *gamecomm.GameChannels) error {
 	squadResChan := make(chan any)
+	defer close(squadResChan)
 
 	gameChannels.CorpChannel <- gamecomm.CorpCommand{
 		Action:          gamecomm.AddResourcesToSquad,
@@ -182,17 +182,39 @@ func addResourcesToSquad(corporationId uint64, resourceAmount int, resource stri
 		return err
 	}
 
-	close(squadResChan)
-
 	return nil
 }
 
 // - This would add resources to corporation
 func returnEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 	// responseChan := make(chan any)
+	for _, resource := range mission.Resources {
 
-	//TODO: Remove resources from squad
-	//TODO: Add resources to base
-	//TODO: Send message
+		removeResChan := make(chan any)
+		gameChannels.CorpChannel <- gamecomm.CorpCommand{
+			Action:          gamecomm.RemoveResourcesFromSquad,
+			ResponseChannel: removeResChan,
+			CorporationId:   mission.CorporationId,
+			Resource:        resource,
+		}
+
+		removedAmountRes := <-removeResChan
+		removedAmount := removedAmountRes.(int)
+
+		baseResChan := make(chan any)
+		gameChannels.CorpChannel <- gamecomm.CorpCommand{
+			Action:          gamecomm.AddResourcesToBase,
+			ResponseChannel: baseResChan,
+			Amount:          removedAmount,
+			Resource:        resource,
+		}
+
+		res := <-baseResChan
+		_ = res.(bool)
+
+		//TODO: Send message
+	}
 
 }
+
+// TODO: Change Commands channels
