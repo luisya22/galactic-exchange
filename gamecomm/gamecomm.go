@@ -6,6 +6,11 @@ import (
 
 type GameChannelType string
 
+type ChanResponse struct {
+	Val any
+	Err error
+}
+
 const (
 	WorldChan   = "WorldChan"
 	CorpChan    = "CorpChan"
@@ -41,6 +46,7 @@ type CorpCommand struct {
 	ResponseChannel chan any
 	CorporationId   uint64
 	SquadIndex      int
+	BaseIndex       int
 	Resource        string
 	Amount          int
 }

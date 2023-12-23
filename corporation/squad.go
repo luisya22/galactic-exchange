@@ -8,6 +8,7 @@ import (
 )
 
 type Squad struct {
+	Id          uint64
 	Ships       *ship.Ship
 	CrewMembers []*CrewMember
 	Cargo       map[world.Resource]int
@@ -24,10 +25,10 @@ func (c *Corporation) GetSquad(squadIndex int) (Squad, error) {
 	defer c.Rw.RUnlock()
 
 	if len(c.Squads) > squadIndex {
-		return *c.Squads[squadIndex], fmt.Errorf("error: squad not found %v", squadIndex)
+		return Squad{}, fmt.Errorf("error: squad not found %v", squadIndex)
 	}
 
-	return Squad{}, nil
+	return *c.Squads[squadIndex], nil
 }
 
 func (c *Corporation) AddResourceToSquad(squadIndex int, resource world.Resource, amount int) (int, error) {

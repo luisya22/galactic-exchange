@@ -16,19 +16,10 @@ func (ms *MissionScheduler) CreateSquadMission(m Mission) {
 
 	// GET SQUAD
 	squadId := m.Squads[0]
-	squadResChan := make(chan any)
-	corpCommand := gamecomm.CorpCommand{
-		Action:          gamecomm.GetSquad,
-		ResponseChannel: squadResChan,
-		CorporationId:   m.CorporationId,
-		SquadIndex:      squadId,
+	squad, err := getSquad(m.CorporationId, squadId, ms.eventScheduler.gameChannels)
+	if err != nil {
+		fmt.Println(err.Error()) //TODO: Handle error
 	}
-	ms.eventScheduler.gameChannels.CorpChannel <- corpCommand
-
-	squadRes := <-squadResChan
-	squad := squadRes.(corporation.Squad)
-
-	close(squadResChan)
 
 	// GET PLANET
 	planetResChan := make(chan any)
@@ -129,7 +120,16 @@ func getSquad(corporationId uint64, squadId int, gameChannels *gamecomm.GameChan
 
 	squadRes := <-squadResChan
 
-	squad, ok := squadRes.(corporation.Squad)
+	squadChanRes, ok := squadRes.(gamecomm.ChanResponse)
+	if !ok {
+		return corporation.Squad{}, fmt.Errorf("world channel returned wrong squad object")
+	}
+
+	if squadChanRes.Err != nil {
+		return corporation.Squad{}, fmt.Errorf("error: %v", squadChanRes.Err.Error())
+	}
+
+	squad, ok := squadChanRes.Val.(corporation.Squad)
 	if !ok {
 		return corporation.Squad{}, fmt.Errorf("world channel returned wrong squad object")
 	}
@@ -207,6 +207,8 @@ func returnEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 			ResponseChannel: baseResChan,
 			Amount:          removedAmount,
 			Resource:        resource,
+			CorporationId:   mission.CorporationId,
+			BaseIndex:       0,
 		}
 
 		res := <-baseResChan
