@@ -10,7 +10,7 @@ This project is currently under development and not all features are implemented
 ### MVP (Minimum Viable Product)
 
 - [x] Universe Generation with different zones and resources
-- [ ] Basic Resource Management
+- [x] Basic Resource Management
 - [ ] Simple Trading and Economy System (static prices)
 - [ ] Basic NPC Factions with random behaviors (select random action from list)
 - [ ] Real-world Time Management
