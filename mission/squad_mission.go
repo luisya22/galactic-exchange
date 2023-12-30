@@ -19,10 +19,11 @@ func (ms *MissionScheduler) CreateSquadMission(m Mission) {
 	squad, err := getSquad(m.CorporationId, squadId, ms.eventScheduler.gameChannels)
 	if err != nil {
 		fmt.Println(err.Error()) //TODO: Handle error
+		return
 	}
 
 	// GET PLANET
-	planetResChan := make(chan any)
+	planetResChan := make(chan gamecomm.ChanResponse)
 	planetCommand := gamecomm.WorldCommand{
 		PlanetId:        m.PlanetId,
 		Action:          gamecomm.GetPlanet,
@@ -31,19 +32,23 @@ func (ms *MissionScheduler) CreateSquadMission(m Mission) {
 	ms.eventScheduler.gameChannels.WorldChannel <- planetCommand
 
 	planetRes := <-planetResChan
-	planet := planetRes.(world.Planet)
+	if planetRes.Err != nil {
+		fmt.Println(planetRes.Err.Error())
+		return
+	}
 
+	planet := planetRes.Val.(world.Planet)
 	close(planetResChan)
 
 	// CALCULATE SHIP SPEED
 	shipSpeed := squad.Ships.Speed
 	planetDistance := world.Distance(squad.Location, planet.Location)
-	destinationTime := planetDistance / float64(shipSpeed)
+	_ = planetDistance / float64(shipSpeed)
 
 	// CREATE ARRIVE EVENT
 	ae := Event{
 		MissionId: m.Id,
-		Time:      time.Now().Add(time.Minute * time.Duration(destinationTime)),
+		Time:      time.Now(),
 		Cancelled: false,
 		Execute:   arrivingEvent,
 	}
@@ -53,7 +58,7 @@ func (ms *MissionScheduler) CreateSquadMission(m Mission) {
 	// CREATE HARVESTING RESOURCES EVENT
 	he := Event{
 		MissionId: m.Id,
-		Time:      m.DestinationTime,
+		Time:      time.Now().Add(15 * time.Second),
 		Cancelled: false,
 		Execute:   harvestingEvent,
 	}
@@ -63,7 +68,7 @@ func (ms *MissionScheduler) CreateSquadMission(m Mission) {
 	// CREATE RETURN EVENT
 	re := Event{
 		MissionId: m.Id,
-		Time:      m.ReturnalTime,
+		Time:      time.Now().Add(30 * time.Second),
 		Cancelled: false,
 		Execute:   returnEvent,
 	}
@@ -73,7 +78,7 @@ func (ms *MissionScheduler) CreateSquadMission(m Mission) {
 
 // - This would send message that we arrive to the mission place
 func arrivingEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
-	// TODO: Notify
+	mission.NotificationChan <- fmt.Sprintf("Mission Notification: Squad %v, reached destination.", mission.Squads)
 	// TODO: Calculate danger
 }
 
@@ -93,13 +98,19 @@ func harvestingEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 		resourceAmount := 100 * bonus
 
 		// Remove Resources from planet
-		removeResourceFromPlanet(mission.PlanetId, resourceAmount, resource, gameChannels)
+		err := removeResourceFromPlanet(mission.PlanetId, resourceAmount, resource, gameChannels)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		// Add Resources to Squad
-		addResourcesToSquad(mission.CorporationId, resourceAmount, resource, gameChannels)
+		err = addResourcesToSquad(mission.CorporationId, resourceAmount, resource, gameChannels)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
-	//TODO: Send message
+	mission.NotificationChan <- fmt.Sprintf("Mission Notification: Squad %v, finished harvesting.", mission.Squads)
 
 }
 
@@ -107,7 +118,7 @@ func harvestingEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 
 func getSquad(corporationId uint64, squadId int, gameChannels *gamecomm.GameChannels) (corporation.Squad, error) {
 
-	squadResChan := make(chan any)
+	squadResChan := make(chan gamecomm.ChanResponse)
 	defer close(squadResChan)
 	corpCommand := gamecomm.CorpCommand{
 		Action:          gamecomm.GetSquad,
@@ -119,19 +130,13 @@ func getSquad(corporationId uint64, squadId int, gameChannels *gamecomm.GameChan
 	gameChannels.CorpChannel <- corpCommand
 
 	squadRes := <-squadResChan
-
-	squadChanRes, ok := squadRes.(gamecomm.ChanResponse)
-	if !ok {
-		return corporation.Squad{}, fmt.Errorf("world channel returned wrong squad object")
+	if squadRes.Err != nil {
+		fmt.Printf("erro: %v\n", squadRes.Err.Error())
 	}
 
-	if squadChanRes.Err != nil {
-		return corporation.Squad{}, fmt.Errorf("error: %v", squadChanRes.Err.Error())
-	}
-
-	squad, ok := squadChanRes.Val.(corporation.Squad)
+	squad, ok := squadRes.Val.(corporation.Squad)
 	if !ok {
-		return corporation.Squad{}, fmt.Errorf("world channel returned wrong squad object")
+		return corporation.Squad{}, fmt.Errorf("world channel returned wrong squad object: %v", squadRes.Val)
 	}
 
 	return squad, nil
@@ -139,7 +144,7 @@ func getSquad(corporationId uint64, squadId int, gameChannels *gamecomm.GameChan
 }
 
 func removeResourceFromPlanet(planetId string, resourceAmount int, resource string, gameChannels *gamecomm.GameChannels) error {
-	responseChan := make(chan any)
+	responseChan := make(chan gamecomm.ChanResponse)
 	defer close(responseChan)
 
 	gameChannels.WorldChannel <- gamecomm.WorldCommand{
@@ -152,16 +157,16 @@ func removeResourceFromPlanet(planetId string, resourceAmount int, resource stri
 
 	responseChanRes := <-responseChan
 
-	err := responseChanRes.(error)
+	err := responseChanRes.Err
 	if err != nil {
-		return err // TODO: Handle error correctly
+		return err
 	}
 
 	return nil
 }
 
 func addResourcesToSquad(corporationId uint64, resourceAmount int, resource string, gameChannels *gamecomm.GameChannels) error {
-	squadResChan := make(chan any)
+	squadResChan := make(chan gamecomm.ChanResponse)
 	defer close(squadResChan)
 
 	gameChannels.CorpChannel <- gamecomm.CorpCommand{
@@ -174,10 +179,7 @@ func addResourcesToSquad(corporationId uint64, resourceAmount int, resource stri
 
 	squadRes := <-squadResChan
 
-	err, ok := squadRes.(error)
-	if !ok {
-		return fmt.Errorf("error on communication with CorpChannel, did not send error")
-	}
+	err := squadRes.Err
 	if err != nil {
 		return err
 	}
@@ -188,9 +190,11 @@ func addResourcesToSquad(corporationId uint64, resourceAmount int, resource stri
 // - This would add resources to corporation
 func returnEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 	// responseChan := make(chan any)
+
+	mission.NotificationChan <- fmt.Sprintf("Mission Notification: Squad %v returned to base.", mission.Squads)
 	for _, resource := range mission.Resources {
 
-		removeResChan := make(chan any)
+		removeResChan := make(chan gamecomm.ChanResponse)
 		gameChannels.CorpChannel <- gamecomm.CorpCommand{
 			Action:          gamecomm.RemoveResourcesFromSquad,
 			ResponseChannel: removeResChan,
@@ -199,9 +203,13 @@ func returnEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 		}
 
 		removedAmountRes := <-removeResChan
-		removedAmount := removedAmountRes.(int)
+		if removedAmountRes.Err != nil {
+			fmt.Println(removedAmountRes.Err) // TODO: Handle error
+			return
+		}
+		removedAmount := removedAmountRes.Val.(int)
 
-		baseResChan := make(chan any)
+		baseResChan := make(chan gamecomm.ChanResponse)
 		gameChannels.CorpChannel <- gamecomm.CorpCommand{
 			Action:          gamecomm.AddResourcesToBase,
 			ResponseChannel: baseResChan,
@@ -212,11 +220,14 @@ func returnEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 		}
 
 		res := <-baseResChan
-		_ = res.(bool)
+		if res.Err != nil {
+			fmt.Println(res.Err) // TODO: Handle error
+			return
+		}
+		amount := res.Val.(int)
 
-		//TODO: Send message
+		mission.NotificationChan <- fmt.Sprintf("Mission Notification: Added to base %v -> #%v", resource, amount)
 	}
-
 }
 
 // TODO: Change Commands channels

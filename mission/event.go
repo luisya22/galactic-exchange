@@ -75,7 +75,7 @@ func (s *EventScheduler) Run() {
 		now := time.Now()
 		if now.After(event.Time) {
 			mission := s.missions[event.MissionId]
-			event.Execute(mission, s.gameChannels)
+			go event.Execute(mission, s.gameChannels)
 			s.rw.Lock()
 			delete(s.events, event.Id)
 			s.rw.Unlock()

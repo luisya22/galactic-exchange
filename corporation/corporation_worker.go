@@ -12,6 +12,7 @@ func (cg *CorpGroup) listen() {
 }
 
 // TODO: add WaitGroup to all the workers
+// TODO: Test
 func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 
 	for command := range ch {

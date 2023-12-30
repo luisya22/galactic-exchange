@@ -28,7 +28,7 @@ type WorldCommand struct {
 	PlanetId        string
 	Action          WorldCommandType
 	Amount          int
-	ResponseChannel chan any
+	ResponseChannel chan ChanResponse
 	Resource        string
 }
 
@@ -43,7 +43,7 @@ const (
 // Corporation Channels
 type CorpCommand struct {
 	Action          CommandType
-	ResponseChannel chan any
+	ResponseChannel chan ChanResponse
 	CorporationId   uint64
 	SquadIndex      int
 	BaseIndex       int
@@ -64,15 +64,16 @@ const (
 
 // Mission Channels
 type MissionCommand struct {
-	Id              string
-	CorporationId   uint64
-	Squads          []int
-	PlanetId        string
-	DestinationTime time.Time
-	ReturnalTime    time.Time
-	Status          string
-	Type            MissionType
-	Resources       []string
+	Id               string
+	CorporationId    uint64
+	Squads           []int
+	PlanetId         string
+	DestinationTime  time.Time
+	ReturnalTime     time.Time
+	Status           string
+	Type             MissionType
+	Resources        []string
+	NotificationChan chan string
 }
 
 type MissionType int

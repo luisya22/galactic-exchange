@@ -17,15 +17,16 @@ type MissionScheduler struct {
 }
 
 type Mission struct {
-	Id              string
-	CorporationId   uint64
-	Squads          []int
-	PlanetId        string
-	DestinationTime time.Time
-	ReturnalTime    time.Time
-	Status          string
-	Type            gamecomm.MissionType
-	Resources       []string
+	Id               string
+	CorporationId    uint64
+	Squads           []int
+	PlanetId         string
+	DestinationTime  time.Time
+	ReturnalTime     time.Time
+	Status           string
+	Type             gamecomm.MissionType
+	Resources        []string
+	NotificationChan chan string
 }
 
 // startMission
@@ -70,15 +71,16 @@ func CreateMission(mc gamecomm.MissionCommand) (Mission, error) {
 	missionId := uuid.String()
 
 	mission := Mission{
-		Id:              missionId,
-		CorporationId:   mc.CorporationId,
-		Squads:          mc.Squads,
-		PlanetId:        mc.PlanetId,
-		DestinationTime: mc.DestinationTime,
-		ReturnalTime:    mc.ReturnalTime,
-		Status:          "In Progress",
-		Type:            mc.Type,
-		Resources:       mc.Resources,
+		Id:               missionId,
+		CorporationId:    mc.CorporationId,
+		Squads:           mc.Squads,
+		PlanetId:         mc.PlanetId,
+		DestinationTime:  mc.DestinationTime,
+		ReturnalTime:     mc.ReturnalTime,
+		Status:           "In Progress",
+		Type:             mc.Type,
+		Resources:        mc.Resources,
+		NotificationChan: mc.NotificationChan,
 	}
 
 	return mission, nil

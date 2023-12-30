@@ -3,6 +3,7 @@ package game
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"runtime"
 	"strconv"
@@ -37,8 +38,15 @@ Possible State fields:
 	Etc...
 */
 type PlayerState struct {
-	Corporation *corporation.Corporation
-	Name        string
+	Corporation      *corporation.Corporation
+	Name             string
+	NotificationChan chan string
+}
+
+func (ps *PlayerState) listenNotifications() {
+	for message := range ps.NotificationChan {
+		log.Println(message)
+	}
 }
 
 func New() *Game {
@@ -79,6 +87,7 @@ func Start() error {
 
 	go game.MissionScheduler.Run()
 	go game.Corporations.Run()
+	go game.PlayerState.listenNotifications()
 
 	for k, p := range game.World.Planets {
 		fmt.Printf("Planets: %v -> %v -> %v -> %v\n", len(game.World.Planets), k, strconv.Quote(p.Name), game.World.Planets["Zone-1-Planet-1"])
@@ -86,6 +95,7 @@ func Start() error {
 	}
 
 	fmt.Printf("%v\n", game.PlayerState.Corporation.Bases[0].StoredResources[world.Iron])
+	fmt.Println(game.PlayerState.Corporation.Squads[0])
 
 	for _, i := range game.World.AllResources {
 		fmt.Printf("%v -> %v\n", i.Name, i.BasePrice)
@@ -168,7 +178,7 @@ func (g *Game) harvestPlanet(command []string) error {
 		return fmt.Errorf("%v needs to be an integer", command[2])
 	}
 
-	return g.HarvestPlanet(planetId, 1, squadId)
+	return g.HarvestPlanet(planetId, 1, squadId, g.PlayerState.NotificationChan)
 }
 
 func newPlayer() *PlayerState {
@@ -214,6 +224,7 @@ func newPlayer() *PlayerState {
 		{
 			Ships:       ship,
 			CrewMembers: []*corporation.CrewMember{crewMembers[0]},
+			Cargo:       make(map[world.Resource]int),
 		},
 	}
 
@@ -229,8 +240,9 @@ func newPlayer() *PlayerState {
 	}
 
 	return &PlayerState{
-		Corporation: playerCorporation,
-		Name:        "Player One",
+		Corporation:      playerCorporation,
+		Name:             "Player One",
+		NotificationChan: make(chan string),
 	}
 
 }

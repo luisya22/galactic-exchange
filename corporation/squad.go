@@ -24,9 +24,11 @@ func (c *Corporation) GetSquad(squadIndex int) (Squad, error) {
 	c.Rw.RLock()
 	defer c.Rw.RUnlock()
 
-	if len(c.Squads) > squadIndex {
+	if len(c.Squads) <= squadIndex {
 		return Squad{}, fmt.Errorf("error: squad not found %v", squadIndex)
 	}
+
+	fmt.Println()
 
 	return *c.Squads[squadIndex], nil
 }
@@ -36,7 +38,7 @@ func (c *Corporation) AddResourceToSquad(squadIndex int, resource world.Resource
 	c.Rw.Lock()
 	defer c.Rw.Unlock()
 
-	if len(c.Squads) > squadIndex {
+	if len(c.Squads) <= squadIndex {
 		return 0, fmt.Errorf("error: squad not found %v", squadIndex)
 	}
 
@@ -52,7 +54,7 @@ func (c *Corporation) RemoveResourcesFromSquad(squadIndex int, resource world.Re
 	c.Rw.Lock()
 	defer c.Rw.Unlock()
 
-	if len(c.Squads) > squadIndex {
+	if len(c.Squads) <= squadIndex {
 		return 0, fmt.Errorf("error: squad not found %v", squadIndex)
 	}
 
