@@ -13,7 +13,7 @@ This project is currently under development and not all features are implemented
 - [x] Basic Resource Management
 - [ ] Simple Trading and Economy System (static prices)
 - [ ] Basic NPC Factions with random behaviors (select random action from list)
-- [ ] Real-world Time Management
+- [x] Real-world Time Management
 - [ ] Notifications for crucial events
 - [ ] Access game through basic CLI commands
 
