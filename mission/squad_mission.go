@@ -2,9 +2,9 @@ package mission
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/luisya22/galactic-exchange/corporation"
+	"github.com/luisya22/galactic-exchange/gameclock"
 	"github.com/luisya22/galactic-exchange/gamecomm"
 	"github.com/luisya22/galactic-exchange/world"
 )
@@ -48,7 +48,7 @@ func (ms *MissionScheduler) CreateSquadMission(m Mission) {
 	// CREATE ARRIVE EVENT
 	ae := Event{
 		MissionId: m.Id,
-		Time:      time.Now(),
+		Time:      ms.gameClock.GetCurrentTime(),
 		Cancelled: false,
 		Execute:   arrivingEvent,
 	}
@@ -58,7 +58,7 @@ func (ms *MissionScheduler) CreateSquadMission(m Mission) {
 	// CREATE HARVESTING RESOURCES EVENT
 	he := Event{
 		MissionId: m.Id,
-		Time:      time.Now().Add(15 * time.Second),
+		Time:      ms.gameClock.GetCurrentTime().Add(2 * gameclock.Day),
 		Cancelled: false,
 		Execute:   harvestingEvent,
 	}
@@ -68,7 +68,7 @@ func (ms *MissionScheduler) CreateSquadMission(m Mission) {
 	// CREATE RETURN EVENT
 	re := Event{
 		MissionId: m.Id,
-		Time:      time.Now().Add(30 * time.Second),
+		Time:      ms.gameClock.GetCurrentTime().Add(3 * gameclock.Day),
 		Cancelled: false,
 		Execute:   returnEvent,
 	}

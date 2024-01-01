@@ -2,7 +2,8 @@ package mission
 
 import (
 	"container/heap"
-	"time"
+
+	"github.com/luisya22/galactic-exchange/gameclock"
 )
 
 type EventQueue []*Event
@@ -37,7 +38,7 @@ func (eq *EventQueue) Pop() any {
 	return event
 }
 
-func (eq *EventQueue) Update(event *Event, t time.Time, cancelled bool) {
+func (eq *EventQueue) Update(event *Event, t gameclock.GameTime, cancelled bool) {
 	event.Time = t
 	event.Cancelled = cancelled
 	heap.Fix(eq, event.Index)

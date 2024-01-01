@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/luisya22/galactic-exchange/gameclock"
 	"github.com/luisya22/galactic-exchange/gamecomm"
 )
 
@@ -14,6 +15,7 @@ type MissionScheduler struct {
 	eventScheduler *EventScheduler
 	missionChannel chan gamecomm.MissionCommand
 	RW             sync.RWMutex
+	gameClock      *gameclock.GameClock
 }
 
 type Mission struct {
@@ -34,15 +36,16 @@ type Mission struct {
 // events -> sendMissionStatus, after each event send notification
 // if all events received, end mission and send notification
 
-func NewMissionScheduler(gameChannels *gamecomm.GameChannels) *MissionScheduler {
+func NewMissionScheduler(gameChannels *gamecomm.GameChannels, gc *gameclock.GameClock) *MissionScheduler {
 
 	missions := make(map[string]*Mission, 0)
-	eventScheduler := NewEventScheduler(gameChannels, missions)
+	eventScheduler := NewEventScheduler(gameChannels, missions, gc)
 
 	return &MissionScheduler{
 		missions:       missions,
 		eventScheduler: eventScheduler,
 		missionChannel: gameChannels.MissionChannel,
+		gameClock:      gc,
 	}
 }
 

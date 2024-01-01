@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/luisya22/galactic-exchange/corporation"
+	"github.com/luisya22/galactic-exchange/gameclock"
 	"github.com/luisya22/galactic-exchange/gamecomm"
 	"github.com/luisya22/galactic-exchange/mission"
 	"github.com/luisya22/galactic-exchange/ship"
@@ -23,6 +24,7 @@ type Game struct {
 	PlayerState      *PlayerState
 	MissionScheduler *mission.MissionScheduler
 	gameChannels     *gamecomm.GameChannels
+	gameClock        *gameclock.GameClock
 }
 
 /*
@@ -56,6 +58,8 @@ func New() *Game {
 		MissionChannel: make(chan gamecomm.MissionCommand, 100),
 	}
 
+	gc := gameclock.NewGameClock(0, 1)
+
 	w := world.New(gameChannels)
 
 	playerState := newPlayer()
@@ -63,7 +67,7 @@ func New() *Game {
 
 	corporations.Corporations[1] = playerState.Corporation
 
-	missionScheduler := mission.NewMissionScheduler(gameChannels)
+	missionScheduler := mission.NewMissionScheduler(gameChannels, gc)
 
 	return &Game{
 		World:            w,
@@ -71,6 +75,7 @@ func New() *Game {
 		Corporations:     corporations,
 		MissionScheduler: missionScheduler,
 		gameChannels:     gameChannels,
+		gameClock:        gc,
 	}
 }
 
@@ -88,6 +93,7 @@ func Start() error {
 	go game.MissionScheduler.Run()
 	go game.Corporations.Run()
 	go game.PlayerState.listenNotifications()
+	go game.gameClock.StartTime()
 
 	for k, p := range game.World.Planets {
 		fmt.Printf("Planets: %v -> %v -> %v -> %v\n", len(game.World.Planets), k, strconv.Quote(p.Name), game.World.Planets["Zone-1-Planet-1"])

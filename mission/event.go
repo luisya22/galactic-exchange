@@ -4,15 +4,15 @@ import (
 	"container/heap"
 	"fmt"
 	"sync"
-	"time"
 
+	"github.com/luisya22/galactic-exchange/gameclock"
 	"github.com/luisya22/galactic-exchange/gamecomm"
 )
 
 type Event struct {
 	Id        string
 	MissionId string
-	Time      time.Time
+	Time      gameclock.GameTime
 	Cancelled bool
 	Index     int
 	Execute   func(*Mission, *gamecomm.GameChannels)
@@ -24,14 +24,16 @@ type EventScheduler struct {
 	rw           sync.RWMutex
 	gameChannels *gamecomm.GameChannels
 	missions     map[string]*Mission
+	gameClock    *gameclock.GameClock
 }
 
-func NewEventScheduler(gameChannels *gamecomm.GameChannels, missions map[string]*Mission) *EventScheduler {
+func NewEventScheduler(gameChannels *gamecomm.GameChannels, missions map[string]*Mission, gc *gameclock.GameClock) *EventScheduler {
 	return &EventScheduler{
 		events:       make(map[string]*Event),
 		queue:        make(EventQueue, 0),
 		gameChannels: gameChannels,
 		missions:     missions,
+		gameClock:    gc,
 	}
 }
 
@@ -42,7 +44,7 @@ func (s *EventScheduler) Schedule(e *Event) {
 	s.rw.Unlock()
 }
 
-func (s *EventScheduler) UpdateEvent(eventId string, newTime time.Time, cancelled bool) error {
+func (s *EventScheduler) UpdateEvent(eventId string, newTime gameclock.GameTime, cancelled bool) error {
 	var event *Event
 	var ok bool
 
@@ -72,7 +74,7 @@ func (s *EventScheduler) Run() {
 			continue
 		}
 
-		now := time.Now()
+		now := s.gameClock.GetCurrentTime()
 		if now.After(event.Time) {
 			mission := s.missions[event.MissionId]
 			go event.Execute(mission, s.gameChannels)
