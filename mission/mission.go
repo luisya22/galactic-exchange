@@ -29,6 +29,7 @@ type Mission struct {
 	Type             gamecomm.MissionType
 	Resources        []string
 	NotificationChan chan string
+	Amount           int // TODO: You should have and object for transfers {resource, amount}
 }
 
 // startMission
@@ -84,6 +85,7 @@ func CreateMission(mc gamecomm.MissionCommand) (Mission, error) {
 		Type:             mc.Type,
 		Resources:        mc.Resources,
 		NotificationChan: mc.NotificationChan,
+		Amount:           mc.Amount,
 	}
 
 	return mission, nil
@@ -97,6 +99,10 @@ func (ms *MissionScheduler) StartMission(m Mission) {
 	switch m.Type {
 	case gamecomm.SquadMission:
 		ms.CreateSquadMission(m)
+		break
+	case gamecomm.TransferMission:
+		ms.CreateTransferMission(m)
+		break
 	default:
 		ms.RW.Lock()
 		delete(ms.missions, m.Id)

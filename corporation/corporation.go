@@ -102,6 +102,20 @@ func (c *CorpGroup) AddCredits(corporationId uint64, amount float64) (float64, e
 	return corporation.Credits, nil
 }
 
+func (c *CorpGroup) RemoveCredits(corporationId uint64, amount float64) (float64, error) {
+	corporation, err := c.findCorporationReference(corporationId)
+	if err != nil {
+		return 0, err
+	}
+
+	corporation.Rw.Lock()
+	defer corporation.Rw.Unlock()
+
+	corporation.Credits -= amount
+
+	return corporation.Credits, nil
+}
+
 func (c *CorpGroup) RemoveResources(corporationId uint64, resource world.Resource, amount int) (int, error) {
 	corporation, err := c.findCorporationReference(corporationId)
 	if err != nil {

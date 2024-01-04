@@ -136,8 +136,8 @@ func Start() error {
 		switch command[0] {
 
 		case "sell":
-			if len(command) != 4 {
-				fmt.Printf("Wrong command: the sell command is 'sell <amount> <item> <planetId>'")
+			if len(command) != 5 {
+				fmt.Printf("Wrong command: the sell command is 'sell <amount> <item> <planetId> <squad>'")
 				continue
 			}
 
@@ -161,7 +161,7 @@ func Start() error {
 	}
 }
 
-// sell <number> <item> <planet>
+// sell <number> <item> <planet> <squadId>
 func (g *Game) sellResource(command []string) error {
 
 	amount, err := strconv.Atoi(command[1])
@@ -172,8 +172,12 @@ func (g *Game) sellResource(command []string) error {
 	itemName := world.Resource(command[2])
 	planetId := command[3]
 
-	return g.SellResource(amount, itemName, planetId, 1)
+	squadId, err := strconv.Atoi(command[4])
+	if err != nil {
+		return fmt.Errorf("%v needs to be an integer", command[4])
+	}
 
+	return g.SellResource(planetId, 1, squadId, amount, itemName, g.PlayerState.NotificationChan)
 }
 
 // harvest <planet> <squad>

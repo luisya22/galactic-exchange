@@ -49,6 +49,7 @@ type CorpCommand struct {
 	BaseIndex       int
 	Resource        string
 	Amount          int
+	AmountDecimal   float64
 }
 
 type CommandType int
@@ -60,6 +61,8 @@ const (
 	RemoveResourcesFromSquad
 	AddResourcesToBase
 	RemoveResourcesFromBase
+	AddCredits
+	RemoveCredits
 )
 
 // Mission Channels
@@ -74,6 +77,7 @@ type MissionCommand struct {
 	Type             MissionType
 	Resources        []string
 	NotificationChan chan string
+	Amount           int
 }
 
 type MissionType int
@@ -81,4 +85,5 @@ type MissionType int
 const (
 	SquadMission MissionType = iota
 	QuestMission
+	TransferMission
 )
