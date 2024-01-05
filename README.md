@@ -52,7 +52,17 @@ This project is currently under development and not all features are implemented
 - [ ] **Pirate Raids**: Prepare to defend against or negotiate with pirate threats.
 
 ## How to Contribute
-(TBA)
+
+We welcome contributions from everyone! Here's how you can contribute:
+
+1. **Fork the Repository**: Start by forking the repository to your GitHub account.
+2. **Clone Locally**: Clone your fork to your local machine.
+3. **Set Up the Environment**: Follow the installation instructions to set up the game on your local machine.
+4. **Pick an Issue**: Look for issues labeled 'good-first-issue' or 'help-wanted'.
+5. **Create a New Branch**: Create a branch for your work from the 'main' branch.
+6. **Make Changes**: Work on the issue in your branch.
+7. **Test Your Changes**: Ensure your changes don't break any existing functionality.
+8. **Submit a Pull Request**: Push your changes to your fork and open a pull request to the main repository.
 
 ## FAQ
 (TBA)
