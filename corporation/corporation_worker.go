@@ -21,13 +21,13 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 			corp, err := cg.findCorporationReference(command.CorporationId)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
-				break
+				continue
 			}
 
 			squad, err := corp.GetSquad(command.SquadIndex)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
-				break
+				continue
 			}
 
 			command.ResponseChannel <- gamecomm.ChanResponse{Val: squad}
@@ -35,7 +35,7 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 			corp, err := cg.findCorporationReference(command.CorporationId)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
-				break
+				continue
 			}
 
 			command.ResponseChannel <- gamecomm.ChanResponse{Val: corp}
@@ -43,7 +43,7 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 			amount, err := cg.AddResources(command.CorporationId, world.Resource(command.Resource), command.Amount)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
-				break
+				continue
 			}
 
 			command.ResponseChannel <- gamecomm.ChanResponse{Val: amount}
@@ -58,13 +58,13 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 			corp, err := cg.findCorporationReference(command.CorporationId)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
-				break
+				continue
 			}
 
 			amount, err := corp.AddResourceToSquad(command.SquadIndex, world.Resource(command.Resource), command.Amount)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
-				break
+				continue
 			}
 
 			command.ResponseChannel <- gamecomm.ChanResponse{Val: amount}
@@ -72,13 +72,13 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 			corp, err := cg.findCorporationReference(command.CorporationId)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
-				break
+				continue
 			}
 
 			amount, err := corp.RemoveResourcesFromSquad(command.SquadIndex, world.Resource(command.Resource), command.Amount)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
-				break
+				continue
 			}
 
 			command.ResponseChannel <- gamecomm.ChanResponse{Val: amount}
@@ -86,7 +86,7 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 			_, err := cg.AddCredits(command.CorporationId, command.AmountDecimal)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
-				break
+				continue
 			}
 
 			command.ResponseChannel <- gamecomm.ChanResponse{Val: true}
@@ -94,7 +94,7 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 			_, err := cg.RemoveCredits(command.CorporationId, command.AmountDecimal)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
-				break
+				continue
 			}
 
 			command.ResponseChannel <- gamecomm.ChanResponse{Val: true}

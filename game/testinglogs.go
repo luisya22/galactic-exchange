@@ -56,7 +56,7 @@ func clamp(value, min, max int) int {
 	return value
 }
 
-func PlotZonesASCII(w world.World) {
+func PlotZonesASCII(w *world.World) {
 	// Initialize grid with empty space
 	grid := make([][]string, gridHeight)
 	for i := range grid {

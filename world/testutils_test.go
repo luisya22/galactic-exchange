@@ -42,17 +42,15 @@ func createTestWorld(t *testing.T, gameChannels *gamecomm.GameChannels) *world.W
 	coordinates := world.Coordinates{10, 10}
 
 	zone1 := createTestZone("Zone-1", coordinates)
-	w.Zones[zone1.Name] = &zone1
+	w.Zones[zone1.Name] = zone1
 
 	planetCoordinates := world.Coordinates{20, 20}
-	planet1 := createTestPlanet(planet1Name, true, planetCoordinates, 0, 1)
-	zone1.Planets[planet1.Name] = &planet1
-	w.Planets[planet1.Name] = &planet1
+	createTestPlanet(w, zone1, planet1Name, true, planetCoordinates, 0, 1)
 
 	return w
 }
 
-func createTestZone(zoneName string, zoneLocation world.Coordinates) world.Zone {
+func createTestZone(zoneName string, zoneLocation world.Coordinates) *world.Zone {
 
 	dangerLevel := 1
 	resourcesProfile := world.ResourceProfile{
@@ -60,7 +58,7 @@ func createTestZone(zoneName string, zoneLocation world.Coordinates) world.Zone 
 		Secondary: world.Water,
 	}
 
-	zone := world.Zone{
+	zone := &world.Zone{
 		Name:            zoneName,
 		CentralPoint:    world.Coordinates{10, 10},
 		DangerRange:     [2]int{dangerLevel, dangerLevel + 10},
@@ -73,7 +71,7 @@ func createTestZone(zoneName string, zoneLocation world.Coordinates) world.Zone 
 
 }
 
-func createTestPlanet(planetName string, isHabitable bool, planetLocation world.Coordinates, population int, dangerLevel int) world.Planet {
+func createTestPlanet(w *world.World, z *world.Zone, planetName string, isHabitable bool, planetLocation world.Coordinates, population int, dangerLevel int) {
 
 	planet := world.Planet{
 		Name: planetName, Location: planetLocation,
@@ -92,5 +90,7 @@ func createTestPlanet(planetName string, isHabitable bool, planetLocation world.
 
 	planet.Resources = resources
 
-	return planet
+	z.Planets[planet.Name] = &planet
+	w.Planets[planet.Name] = &planet
+
 }
