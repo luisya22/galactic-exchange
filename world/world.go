@@ -53,7 +53,7 @@ func New(gameChannels *gamecomm.GameChannels) *World {
 
 	world.GenerateZones(1000)
 
-	go world.listen()
+	go world.Listen()
 
 	return world
 }

@@ -1,8 +1,10 @@
 package world
 
-import "github.com/luisya22/galactic-exchange/gamecomm"
+import (
+	"github.com/luisya22/galactic-exchange/gamecomm"
+)
 
-func (w *World) listen() {
+func (w *World) Listen() {
 	for i := 0; i < w.Workers; i++ {
 		go w.worker(w.WorldChan)
 	}
@@ -24,13 +26,20 @@ func (w *World) worker(ch <-chan gamecomm.WorldCommand) {
 				Val: planet.copy(),
 				Err: nil,
 			}
+
+			break
 		case gamecomm.AddResourcesToPlanet:
 			amount, err := w.AddResourcesToPlanet(command.PlanetId, Resource(command.Resource), command.Amount)
+			if err != nil {
+				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
+			}
 
 			command.ResponseChannel <- gamecomm.ChanResponse{
 				Val: amount,
 				Err: err,
 			}
+
+			break
 		case gamecomm.RemoveResourcesFromPlanet:
 			amount, err := w.RemoveResourcesFromPlanet(command.PlanetId, Resource(command.Resource), command.Amount)
 
@@ -38,6 +47,8 @@ func (w *World) worker(ch <-chan gamecomm.WorldCommand) {
 				Val: amount,
 				Err: err,
 			}
+
+			break
 
 		}
 	}

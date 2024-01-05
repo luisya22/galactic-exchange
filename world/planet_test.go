@@ -33,7 +33,7 @@ func TestGeneratePlanetsInZone(t *testing.T) {
 			w.GeneratePlanetsInZone(tt.numPlanets, *tt.zone, zoneType)
 			// Validate that planet follow the ranges
 			// Distance
-			minDistance := w.Size / 2
+			// minDistance := w.Size / 2
 			// habitable probability
 			// population
 			// danger level

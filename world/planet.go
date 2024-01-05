@@ -142,6 +142,11 @@ func (w *World) RemoveResourcesFromPlanet(planetId string, resourceName Resource
 }
 
 func (w *World) AddResourcesToPlanet(planetId string, resourceName Resource, amount int) (int, error) {
+
+	if amount < 0 {
+		return 0, fmt.Errorf("error: amount should be greater than zero")
+	}
+
 	w.RW.RLock()
 	planet, err := w.getPlanetReference(planetId)
 	if err != nil {
