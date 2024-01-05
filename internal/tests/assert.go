@@ -23,6 +23,14 @@ func Greater[T constraints.Ordered](t *testing.T, actual, expected T) {
 	}
 }
 
+func Smaller[T constraints.Ordered](t *testing.T, actual, expected T) {
+	t.Helper()
+
+	if !(actual < expected) {
+		t.Errorf("got: %v; want greater than: %v", actual, expected)
+	}
+}
+
 func StringContains(t *testing.T, actual, expectedSubstring string) {
 	t.Helper()
 
