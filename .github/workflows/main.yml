@@ -47,6 +47,9 @@ jobs:
         with:
           path: artifacts
 
+      - name: List files in the working directory
+        run: ls -la
+
       - name: Compress Artifacts
         run: |
           cd artifacts
