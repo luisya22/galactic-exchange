@@ -2,15 +2,14 @@ package game
 
 import (
 	"fmt"
-	"runtime"
 	"strconv"
 
 	"github.com/luisya22/galactic-exchange/world"
 )
 
-func bToMb(b uint64) uint64 {
-	return b / 1024 / 1024
-}
+// func bToMb(b uint64) uint64 {
+// 	return b / 1024 / 1024
+// }
 
 func printTestLog(g *Game) {
 	for k, p := range g.World.Planets {
@@ -27,21 +26,21 @@ func printTestLog(g *Game) {
 	}
 }
 
-var memStats runtime.MemStats
-
-func printBenchmarkData(memStats runtime.MemStats) {
-
-	runtime.ReadMemStats(&memStats)
-
-	// Print memory stats
-	fmt.Printf("Alloc = %v MiB", bToMb(memStats.Alloc))
-	fmt.Printf("\tTotalAlloc = %v MiB", bToMb(memStats.TotalAlloc))
-	fmt.Printf("\tSys = %v MiB", bToMb(memStats.Sys))
-	fmt.Printf("\tNumGC = %v\n", memStats.NumGC)
-	fmt.Printf("\tGoRoutines = %v\n", runtime.NumGoroutine())
-
-	fmt.Println()
-}
+// var memStats runtime.MemStats
+//
+// func printBenchmarkData(memStats runtime.MemStats) {
+//
+// 	runtime.ReadMemStats(&memStats)
+//
+// 	// Print memory stats
+// 	fmt.Printf("Alloc = %v MiB", bToMb(memStats.Alloc))
+// 	fmt.Printf("\tTotalAlloc = %v MiB", bToMb(memStats.TotalAlloc))
+// 	fmt.Printf("\tSys = %v MiB", bToMb(memStats.Sys))
+// 	fmt.Printf("\tNumGC = %v\n", memStats.NumGC)
+// 	fmt.Printf("\tGoRoutines = %v\n", runtime.NumGoroutine())
+//
+// 	fmt.Println()
+// }
 
 const gridWidth, gridHeight = 500, 500
 const universeSize = 10_000.0
@@ -57,7 +56,7 @@ func clamp(value, min, max int) int {
 	return value
 }
 
-func PlotZonesASCII(w world.World) {
+func PlotZonesASCII(w *world.World) {
 	// Initialize grid with empty space
 	grid := make([][]string, gridHeight)
 	for i := range grid {

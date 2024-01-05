@@ -5,7 +5,6 @@ import (
 
 	"github.com/luisya22/galactic-exchange/gameclock"
 	"github.com/luisya22/galactic-exchange/gamecomm"
-	"github.com/luisya22/galactic-exchange/world"
 )
 
 // TODO: Need to update squad positions for every event
@@ -132,12 +131,15 @@ func (ms *MissionScheduler) CalculateTravelDistance(m Mission) {
 		return
 	}
 
-	planet := planetRes.Val.(world.Planet)
+	planet := planetRes.Val.(gamecomm.Planet)
 	close(planetResChan)
 
 	// CALCULATE SHIP SPEED
 	shipSpeed := squad.Ships.Speed
-	planetDistance := world.Distance(squad.Location, planet.Location)
+	squadLocation := gamecomm.Coordinates{X: squad.Location.X, Y: squad.Location.Y}
+	planetLocation := gamecomm.Coordinates{X: planet.Location.X, Y: planet.Location.Y}
+
+	planetDistance := gamecomm.Distance(squadLocation, planetLocation)
 	_ = planetDistance / float64(shipSpeed)
 
 }

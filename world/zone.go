@@ -37,10 +37,6 @@ const (
 )
 
 func (w *World) GenerateZones(numZones int) {
-	type zonePercentages struct {
-		zType      LayerName
-		percentage float64
-	}
 
 	fmt.Println(w.LayerBoundaries)
 

@@ -69,7 +69,7 @@ func CreateMission(mc gamecomm.MissionCommand) (Mission, error) {
 
 	uuid, err := uuid.NewUUID()
 	if err != nil {
-		return Mission{}, fmt.Errorf("Error: %v", err)
+		return Mission{}, fmt.Errorf("error: %v", err)
 	}
 
 	missionId := uuid.String()
@@ -99,10 +99,11 @@ func (ms *MissionScheduler) StartMission(m Mission) {
 	switch m.Type {
 	case gamecomm.SquadMission:
 		ms.CreateSquadMission(m)
-		break
 	case gamecomm.TransferMission:
-		ms.CreateTransferMission(m)
-		break
+		err := ms.CreateTransferMission(m)
+		if err != nil {
+			m.NotificationChan <- err.Error()
+		}
 	default:
 		ms.RW.Lock()
 		delete(ms.missions, m.Id)

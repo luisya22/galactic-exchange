@@ -5,6 +5,8 @@ import (
 	"math"
 	"math/rand"
 	"sync"
+
+	"github.com/luisya22/galactic-exchange/gamecomm"
 )
 
 type Planet struct {
@@ -53,7 +55,7 @@ func (w *World) GeneratePlanetsInZone(numPlanets int, zone Zone, zoneType ZoneTy
 		}
 
 		planet.RW.Lock()
-		GeneratePlanetResources(*w, zone, planet)
+		GeneratePlanetResources(w, zone, planet)
 		planet.RW.Unlock()
 
 		w.Planets[planet.Name] = planet
@@ -63,7 +65,7 @@ func (w *World) GeneratePlanetsInZone(numPlanets int, zone Zone, zoneType ZoneTy
 	return zonePlanets
 }
 
-func GeneratePlanetResources(world World, zone Zone, planet *Planet) {
+func GeneratePlanetResources(world *World, zone Zone, planet *Planet) {
 	resources := make(map[Resource]int, 4)
 
 	for res := range world.AllResources {
@@ -81,26 +83,24 @@ func GeneratePlanetResources(world World, zone Zone, planet *Planet) {
 	planet.Resources = resources
 }
 
-func (p *Planet) copy() Planet {
-	return Planet{
-		Name:           p.Name,
-		Location:       p.Location,
-		Resources:      p.Resources,
-		Population:     p.Population,
-		DangerLevel:    p.DangerLevel,
-		ResourceDemand: p.ResourceDemand,
-		IsHabitable:    p.IsHabitable,
-		IsHarvestable:  p.IsHarvestable,
+func (p *Planet) copy() gamecomm.Planet {
+	return gamecomm.Planet{
+		Name:          p.Name,
+		Location:      gamecomm.Coordinates{X: p.Location.X, Y: p.Location.Y},
+		Population:    p.Population,
+		DangerLevel:   p.DangerLevel,
+		IsHabitable:   p.IsHabitable,
+		IsHarvestable: p.IsHarvestable,
 	}
 }
 
-func (w *World) GetPlanet(planetId string) (Planet, error) {
+func (w *World) GetPlanet(planetId string) (gamecomm.Planet, error) {
 	var planet *Planet
 	var ok bool
 
 	w.RW.RLock()
 	if planet, ok = w.Planets[planetId]; !ok {
-		return Planet{}, fmt.Errorf("Planet not found: %v", planetId)
+		return gamecomm.Planet{}, fmt.Errorf("Planet not found: %v", planetId)
 	}
 
 	defer w.RW.RUnlock()
@@ -113,7 +113,7 @@ func (w *World) getPlanetReference(planetId string) (*Planet, error) {
 	var ok bool
 
 	if planet, ok = w.Planets[planetId]; !ok {
-		return nil, fmt.Errorf("Planet not found: %v", planetId)
+		return nil, fmt.Errorf("error: planet not found: %v", planetId)
 	}
 
 	return planet, nil
@@ -133,7 +133,7 @@ func (w *World) RemoveResourcesFromPlanet(planetId string, resourceName Resource
 	resources, ok := planet.Resources[resourceName]
 
 	if !ok || amount > resources {
-		return 0, fmt.Errorf("Not enough resources")
+		return 0, fmt.Errorf("error: not enough resources")
 	}
 
 	planet.Resources[resourceName] -= amount
