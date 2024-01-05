@@ -20,7 +20,7 @@ jobs:
 
       - name: Test
         run: |
-          go test ./... -v -r
+          go test ./... -v -race
 
       - name: Install Linters
         run: | 
