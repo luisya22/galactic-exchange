@@ -113,7 +113,7 @@ func (w *World) getPlanetReference(planetId string) (*Planet, error) {
 	var ok bool
 
 	if planet, ok = w.Planets[planetId]; !ok {
-		return nil, fmt.Errorf("Planet not found: %v", planetId)
+		return nil, fmt.Errorf("error: planet not found: %v", planetId)
 	}
 
 	return planet, nil
@@ -133,7 +133,7 @@ func (w *World) RemoveResourcesFromPlanet(planetId string, resourceName Resource
 	resources, ok := planet.Resources[resourceName]
 
 	if !ok || amount > resources {
-		return 0, fmt.Errorf("Not enough resources")
+		return 0, fmt.Errorf("error: not enough resources")
 	}
 
 	planet.Resources[resourceName] -= amount

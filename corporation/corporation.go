@@ -127,7 +127,7 @@ func (c *CorpGroup) RemoveResources(corporationId uint64, resource world.Resourc
 
 	// TODO: Select the correct base
 	if resourcesAmount, ok := corporation.Bases[0].StoredResources[resource]; !ok || resourcesAmount < amount {
-		return 0, fmt.Errorf("Not enough resources on base")
+		return 0, fmt.Errorf("not enough resources on base")
 	}
 
 	corporation.Bases[0].StoredResources[resource] -= amount

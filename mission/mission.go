@@ -69,7 +69,7 @@ func CreateMission(mc gamecomm.MissionCommand) (Mission, error) {
 
 	uuid, err := uuid.NewUUID()
 	if err != nil {
-		return Mission{}, fmt.Errorf("Error: %v", err)
+		return Mission{}, fmt.Errorf("error: %v", err)
 	}
 
 	missionId := uuid.String()
