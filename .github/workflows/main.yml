@@ -50,7 +50,7 @@ jobs:
       - name: Compress Artifacts
         run: |
           cd artifacts
-          tar -vzvf gaex-${{ github.ref_name }}.tar.gz *
+          tar -cvzf gaex-${{ github.ref }}.tar.gz *
 
       - name: Create Release
         id: create_release
@@ -59,7 +59,7 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         with:
           tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_nam }}
           draft: false
           prerelease: false
           body: "Gaex Release"
