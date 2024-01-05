@@ -23,7 +23,7 @@ jobs:
           go test ./... -v -race
 
       - name: Linter golanci
-        uses: golanci-lint/golanci-lint-action@v3
+        uses: golangci/golangci-lint-action@v3
         with:
           version: v1.54
 
