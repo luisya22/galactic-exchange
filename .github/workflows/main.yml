@@ -27,18 +27,17 @@ jobs:
       - name: build
         run: |
           go build -o gaex-${GOOS}-${GOARCH} .
-          echo "Build for ${GOOD}-${GOARCH} completed."
+          echo "Build for ${GOOS}-${GOARCH} completed."
 
       - name: List files in the working directory
         run: ls -la
-
 
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
           name: gaex-${{ matrix.goos }}-${{ matrix.goarch }}
           path: gaex-${{ matrix.goos }}-${{ matrix.goarch }}
-  
+ 
   release:
     name: Create Release
     needs: build
@@ -52,13 +51,13 @@ jobs:
         with:
           path: artifacts/
 
-      - name: List files in the working directory
-        run: ls -la
+      - name: List files in artifacts directory
+        run: ls -la artifacts/
 
       - name: Compress Artifacts
         run: |
           cd artifacts
-          tar -cvzf "gaex-${{ github.ref_name }}.tar.gz" .
+          tar -cvzf "gaex-${{ github.ref_name }}.tar.gz" gaex-*/
 
       - name: Create Release
         id: create_release
@@ -71,4 +70,14 @@ jobs:
           draft: false
           prerelease: false
           body: "Gaex Release ${{ github.ref_name }}"
-          files: "./artifacts/gaex-${{ github.ref_name }}.tar.gz"
+
+      # This step uploads the tar.gz file as a release asset.
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/gaex-${{ github.ref_name }}.tar.gz
+          asset_name: gaex-${{ github.ref_name }}.tar.gz
+          asset_content_type: application/gzip
