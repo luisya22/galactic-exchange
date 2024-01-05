@@ -150,19 +150,19 @@ func addCreditsToCorporation(corporationId uint64, amount float64, gameChannels 
 	return nil
 }
 
-func removeCreditsFromCorporation(corporationId uint64, amount float64, gameChannels *gamecomm.GameChannels) error {
-	resChan := make(chan gamecomm.ChanResponse)
-	gameChannels.CorpChannel <- gamecomm.CorpCommand{
-		Action:          gamecomm.AddCredits,
-		ResponseChannel: resChan,
-		CorporationId:   corporationId,
-		AmountDecimal:   amount,
-	}
-
-	res := <-resChan
-	if res.Err != nil {
-		return res.Err
-	}
-
-	return nil
-}
+// func removeCreditsFromCorporation(corporationId uint64, amount float64, gameChannels *gamecomm.GameChannels) error {
+// 	resChan := make(chan gamecomm.ChanResponse)
+// 	gameChannels.CorpChannel <- gamecomm.CorpCommand{
+// 		Action:          gamecomm.AddCredits,
+// 		ResponseChannel: resChan,
+// 		CorporationId:   corporationId,
+// 		AmountDecimal:   amount,
+// 	}
+//
+// 	res := <-resChan
+// 	if res.Err != nil {
+// 		return res.Err
+// 	}
+//
+// 	return nil
+// }

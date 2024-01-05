@@ -77,7 +77,7 @@ func TestGetPlanet(t *testing.T) {
 				assert.Error(t, res.Err)
 			}
 
-			resPlanet, ok := res.Val.(world.Planet)
+			resPlanet, ok := res.Val.(gamecomm.Planet)
 			if !tt.wants.shouldError && !ok {
 				t.Fatalf("type conversion failed - got: %v; expected: %v", reflect.TypeOf(res.Val), "world.Planet")
 			}
@@ -107,9 +107,9 @@ func TestGetPlanet(t *testing.T) {
 				res := <-resChan
 				assert.NilError(t, res.Err)
 
-				resPlanet, ok := res.Val.(world.Planet)
+				resPlanet, ok := res.Val.(gamecomm.Planet)
 				if !ok {
-					t.Fatalf("type conversion failed - got: %v; expected: %v", reflect.TypeOf(res.Val), "world.Planet")
+					t.Errorf("type conversion failed - got: %v; expected: %v", reflect.TypeOf(res.Val), "gamecomm.Planet")
 				}
 
 				assert.Equal[string](t, resPlanet.Name, planet1Name)

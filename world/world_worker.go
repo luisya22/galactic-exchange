@@ -1,6 +1,8 @@
 package world
 
 import (
+	"fmt"
+
 	"github.com/luisya22/galactic-exchange/gamecomm"
 )
 
@@ -23,7 +25,7 @@ func (w *World) worker(ch <-chan gamecomm.WorldCommand) {
 
 			// Return chanel
 			command.ResponseChannel <- gamecomm.ChanResponse{
-				Val: planet.copy(),
+				Val: planet,
 				Err: nil,
 			}
 
@@ -49,6 +51,8 @@ func (w *World) worker(ch <-chan gamecomm.WorldCommand) {
 			}
 
 			break
+		default:
+			command.ResponseChannel <- gamecomm.ChanResponse{Err: fmt.Errorf("error: wrong action")}
 
 		}
 	}

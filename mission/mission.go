@@ -101,7 +101,10 @@ func (ms *MissionScheduler) StartMission(m Mission) {
 		ms.CreateSquadMission(m)
 		break
 	case gamecomm.TransferMission:
-		ms.CreateTransferMission(m)
+		err := ms.CreateTransferMission(m)
+		if err != nil {
+			m.NotificationChan <- err.Error()
+		}
 		break
 	default:
 		ms.RW.Lock()
