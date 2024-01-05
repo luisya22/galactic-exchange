@@ -36,8 +36,8 @@ jobs:
       - name: Archive production artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: gaex-${{GOOS}}-${{GOARCH}}
-          path: gaex-${{GOOS}}-${{GOARCH}}
+          name: gaex-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: gaex-${{ matrix.goos }}-${{ matrix.goarch }}
   
   release:
     name: Create Release
