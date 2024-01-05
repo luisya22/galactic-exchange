@@ -120,6 +120,10 @@ func (w *World) getPlanetReference(planetId string) (*Planet, error) {
 }
 
 func (w *World) RemoveResourcesFromPlanet(planetId string, resourceName Resource, amount int) (int, error) {
+
+	if amount < 0 {
+		return 0, fmt.Errorf("error: amount should be greater than zero")
+	}
 	w.RW.Lock()
 	planet, err := w.getPlanetReference(planetId)
 	if err != nil {
