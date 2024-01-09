@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/luisya22/galactic-exchange/gamecomm"
-	assert "github.com/luisya22/galactic-exchange/internal/tests"
+	"github.com/luisya22/galactic-exchange/internal/assert"
 	"github.com/luisya22/galactic-exchange/world"
 )
 
@@ -256,6 +256,14 @@ func TestAddResourcesToPlanet(t *testing.T) {
 	t.Run("Concurrent Access", func(t *testing.T) {
 		var wg sync.WaitGroup
 		numGoroutines := 10
+		amountPerGoroutine := 50
+		expectedTotalIncrease := numGoroutines * amountPerGoroutine
+
+		w.Planets[planet1Name].RW.RLock()
+		initialResourceAmount := w.Planets[planet1Name].Resources[world.Resource(world.Iron)]
+		w.Planets[planet1Name].RW.RUnlock()
+
+		expectedFinalAmount := initialResourceAmount + expectedTotalIncrease
 
 		for i := 0; i < numGoroutines; i++ {
 			wg.Add(1)
@@ -267,30 +275,24 @@ func TestAddResourcesToPlanet(t *testing.T) {
 					PlanetId:        planet1Name,
 					ResponseChannel: resChan,
 					Action:          gamecomm.AddResourcesToPlanet,
-					Amount:          1,
+					Amount:          amountPerGoroutine,
 					Resource:        string(world.Iron),
 				}
 
-				w.Planets[command.PlanetId].RW.RLock()
-				resourceAmount := w.Planets[command.PlanetId].Resources[world.Resource(command.Resource)]
-				w.Planets[command.PlanetId].RW.RUnlock()
-
 				gameChannels.WorldChannel <- command
-
 				res := <-resChan
 				assert.NilError(t, res.Err)
 
-				resInt, ok := res.Val.(int)
-				if !ok {
-					t.Errorf("type conversion failed - got: %v; expected: %v", reflect.TypeOf(res.Val), "int")
-					return
-				}
-
-				assert.Greater[int](t, resInt, resourceAmount)
 			}()
 		}
 
 		wg.Wait()
+
+		w.Planets[planet1Name].RW.RLock()
+		finalResourceAmount := w.Planets[planet1Name].Resources[world.Resource(world.Iron)]
+		w.Planets[planet1Name].RW.RUnlock()
+
+		assert.Equal(t, finalResourceAmount, expectedFinalAmount)
 	})
 
 }
@@ -469,37 +471,3 @@ func TestRemoveResourcesToPlanet(t *testing.T) {
 	})
 
 }
-
-// func (w *World) worker(ch <-chan gamecomm.WorldCommand) {
-//
-// 	for command := range ch {
-// 		switch command.Action {
-// 		case gamecomm.GetPlanet:
-// 			planet, err := w.GetPlanet(command.PlanetId)
-// 			if err != nil {
-// 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
-// 			}
-//
-// 			// Return chanel
-// 			command.ResponseChannel <- gamecomm.ChanResponse{
-// 				Val: planet.copy(),
-// 				Err: nil,
-// 			}
-// 		case gamecomm.AddResourcesToPlanet:
-// 			amount, err := w.AddResourcesToPlanet(command.PlanetId, Resource(command.Resource), command.Amount)
-//
-// 			command.ResponseChannel <- gamecomm.ChanResponse{
-// 				Val: amount,
-// 				Err: err,
-// 			}
-// 		case gamecomm.RemoveResourcesFromPlanet:
-// 			amount, err := w.RemoveResourcesFromPlanet(command.PlanetId, Resource(command.Resource), command.Amount)
-//
-// 			command.ResponseChannel <- gamecomm.ChanResponse{
-// 				Val: amount,
-// 				Err: err,
-// 			}
-//
-// 		}
-// 	}
-// }
