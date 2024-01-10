@@ -5,7 +5,7 @@ import (
 	"github.com/luisya22/galactic-exchange/world"
 )
 
-func (cg *CorpGroup) listen() {
+func (cg *CorpGroup) Listen() {
 	for i := 0; i < cg.Workers; i++ {
 		go cg.worker(cg.CorpChan)
 	}
@@ -32,7 +32,7 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 
 			command.ResponseChannel <- gamecomm.ChanResponse{Val: squad}
 		case gamecomm.GetCorporation:
-			corp, err := cg.findCorporationReference(command.CorporationId)
+			corp, err := cg.findCorporation(command.CorporationId)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
 				continue
@@ -83,21 +83,21 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 
 			command.ResponseChannel <- gamecomm.ChanResponse{Val: amount}
 		case gamecomm.AddCredits:
-			_, err := cg.AddCredits(command.CorporationId, command.AmountDecimal)
+			credits, err := cg.AddCredits(command.CorporationId, command.AmountDecimal)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
 				continue
 			}
 
-			command.ResponseChannel <- gamecomm.ChanResponse{Val: true}
+			command.ResponseChannel <- gamecomm.ChanResponse{Val: credits}
 		case gamecomm.RemoveCredits:
-			_, err := cg.RemoveCredits(command.CorporationId, command.AmountDecimal)
+			credits, err := cg.RemoveCredits(command.CorporationId, command.AmountDecimal)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
 				continue
 			}
 
-			command.ResponseChannel <- gamecomm.ChanResponse{Val: true}
+			command.ResponseChannel <- gamecomm.ChanResponse{Val: credits}
 
 		default:
 			// TODO: Handle

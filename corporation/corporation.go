@@ -38,7 +38,7 @@ func NewCorpGroup(gameChannels *gamecomm.GameChannels) *CorpGroup {
 }
 
 func (cg *CorpGroup) Run() {
-	cg.listen()
+	cg.Listen()
 }
 
 func (c *CorpGroup) FindCorporation(corporationId uint64) (Corporation, error) {
@@ -69,6 +69,28 @@ func (c *CorpGroup) findCorporationReference(corporationId uint64) (*Corporation
 	return corporation, nil
 }
 
+func (c *CorpGroup) findCorporation(corporationId uint64) (gamecomm.Corporation, error) {
+	var corporation *Corporation
+	var ok bool
+
+	c.RW.RLock()
+	defer c.RW.RUnlock()
+
+	if corporation, ok = c.Corporations[corporationId]; !ok {
+		return gamecomm.Corporation{}, fmt.Errorf("Corporation not found: %v", corporationId)
+	}
+
+	corpCopy := gamecomm.Corporation{
+		ID:         corporation.ID,
+		Name:       corporation.Name,
+		Reputation: corporation.Reputation,
+		Credits:    corporation.Credits,
+	}
+
+	return corpCopy, nil
+
+}
+
 func (c *Corporation) copy() Corporation {
 	basesCopy := make([]*Base, len(c.Bases))
 	copy(c.Bases, c.Bases)
@@ -89,6 +111,10 @@ func (c *Corporation) copy() Corporation {
 }
 
 func (c *CorpGroup) AddCredits(corporationId uint64, amount float64) (float64, error) {
+
+	if amount < 0 {
+		return 0, fmt.Errorf("error: amount should be greater than zero")
+	}
 	corporation, err := c.findCorporationReference(corporationId)
 	if err != nil {
 		return 0, err
@@ -103,6 +129,11 @@ func (c *CorpGroup) AddCredits(corporationId uint64, amount float64) (float64, e
 }
 
 func (c *CorpGroup) RemoveCredits(corporationId uint64, amount float64) (float64, error) {
+
+	if amount < 0 {
+		return 0, fmt.Errorf("error: amount should be greater than zero")
+	}
+
 	corporation, err := c.findCorporationReference(corporationId)
 	if err != nil {
 		return 0, err
@@ -111,12 +142,20 @@ func (c *CorpGroup) RemoveCredits(corporationId uint64, amount float64) (float64
 	corporation.Rw.Lock()
 	defer corporation.Rw.Unlock()
 
+	if amount > corporation.Credits {
+		return 0, fmt.Errorf("error: not enough credits")
+	}
+
 	corporation.Credits -= amount
 
 	return corporation.Credits, nil
 }
 
 func (c *CorpGroup) RemoveResources(corporationId uint64, resource world.Resource, amount int) (int, error) {
+
+	if amount < 0 {
+		return 0, fmt.Errorf("error: amount should be greater than zero")
+	}
 	corporation, err := c.findCorporationReference(corporationId)
 	if err != nil {
 		return 0, err
@@ -127,7 +166,7 @@ func (c *CorpGroup) RemoveResources(corporationId uint64, resource world.Resourc
 
 	// TODO: Select the correct base
 	if resourcesAmount, ok := corporation.Bases[0].StoredResources[resource]; !ok || resourcesAmount < amount {
-		return 0, fmt.Errorf("not enough resources on base")
+		return 0, fmt.Errorf("error: not enough resources on base")
 	}
 
 	corporation.Bases[0].StoredResources[resource] -= amount
@@ -136,6 +175,10 @@ func (c *CorpGroup) RemoveResources(corporationId uint64, resource world.Resourc
 }
 
 func (c *CorpGroup) AddResources(corporationId uint64, resource world.Resource, amount int) (int, error) {
+
+	if amount < 0 {
+		return 0, fmt.Errorf("error: amount should be greater than zero")
+	}
 	corporation, err := c.findCorporationReference(corporationId)
 	if err != nil {
 		return 0, err
@@ -149,7 +192,7 @@ func (c *CorpGroup) AddResources(corporationId uint64, resource world.Resource, 
 		corporation.Bases[0].StoredResources[resource] = 0
 	}
 
-	corporation.Bases[0].StoredResources[resource] -= amount
+	corporation.Bases[0].StoredResources[resource] += amount
 
 	return corporation.Bases[0].StoredResources[resource], nil
 }
