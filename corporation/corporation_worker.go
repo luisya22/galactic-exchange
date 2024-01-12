@@ -94,6 +94,8 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
 				continue
 			}
+
+			command.ResponseChannel <- gamecomm.ChanResponse{Val: amount}
 		case gamecomm.AddCredits:
 			credits, err := cg.AddCredits(command.CorporationId, command.AmountDecimal)
 			if err != nil {
