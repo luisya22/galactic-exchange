@@ -34,8 +34,8 @@ type MockEventScheduler struct {
 	scheduleError        bool
 	scheduleCallsToError int
 	scheduleCalls        int
-	updateError          bool
-	rw                   sync.Mutex
+	// updateError          bool
+	rw sync.Mutex
 }
 
 func newMockScheduler(gameChannels *gamecomm.GameChannels, missions map[string]*mission.Mission, gc *gameclock.GameClock, scheduleError bool, scheduleCallsToError int) *MockEventScheduler {

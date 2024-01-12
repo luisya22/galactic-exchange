@@ -72,7 +72,11 @@ func (ms *MissionScheduler) CreateSquadMission(m Mission) error {
 
 	heId, err := ms.EventScheduler.Schedule(&he)
 	if err != nil {
-		ms.EventScheduler.UpdateEvent(aeId, ae.Time, true)
+		updateErr := ms.EventScheduler.UpdateEvent(aeId, ae.Time, true)
+		if updateErr != nil {
+			return updateErr
+		}
+
 		return err
 	}
 
@@ -86,8 +90,16 @@ func (ms *MissionScheduler) CreateSquadMission(m Mission) error {
 
 	_, err = ms.EventScheduler.Schedule(&re)
 	if err != nil {
-		ms.EventScheduler.UpdateEvent(heId, re.Time, true)
-		ms.EventScheduler.UpdateEvent(aeId, ae.Time, true)
+		updateErr := ms.EventScheduler.UpdateEvent(heId, re.Time, true)
+		if updateErr != nil {
+			return updateErr
+		}
+
+		updateErr = ms.EventScheduler.UpdateEvent(aeId, ae.Time, true)
+		if updateErr != nil {
+			return updateErr
+		}
+
 		return err
 	}
 

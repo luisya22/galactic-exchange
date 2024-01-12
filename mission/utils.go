@@ -79,23 +79,23 @@ func addResourcesToSquad(corporationId uint64, resourceAmount int, resource stri
 	return nil
 }
 
-func removeResourcesFromSquad(corporationId uint64, resource string, amount int, gameChannels *gamecomm.GameChannels) (int, error) {
-	removeResChan := make(chan gamecomm.ChanResponse)
-	gameChannels.CorpChannel <- gamecomm.CorpCommand{
-		Action:          gamecomm.RemoveResourcesFromSquad,
-		ResponseChannel: removeResChan,
-		CorporationId:   corporationId,
-		Resource:        resource,
-		Amount:          amount,
-	}
-
-	removedAmountRes := <-removeResChan
-	if removedAmountRes.Err != nil {
-		return 0, removedAmountRes.Err
-	}
-
-	return removedAmountRes.Val.(int), nil
-}
+// func removeResourcesFromSquad(corporationId uint64, resource string, amount int, gameChannels *gamecomm.GameChannels) (int, error) {
+// 	removeResChan := make(chan gamecomm.ChanResponse)
+// 	gameChannels.CorpChannel <- gamecomm.CorpCommand{
+// 		Action:          gamecomm.RemoveResourcesFromSquad,
+// 		ResponseChannel: removeResChan,
+// 		CorporationId:   corporationId,
+// 		Resource:        resource,
+// 		Amount:          amount,
+// 	}
+//
+// 	removedAmountRes := <-removeResChan
+// 	if removedAmountRes.Err != nil {
+// 		return 0, removedAmountRes.Err
+// 	}
+//
+// 	return removedAmountRes.Val.(int), nil
+// }
 
 func removeAllResourcesFromSquad(corporationId uint64, resource string, gameChannels *gamecomm.GameChannels) (int, error) {
 	removeResChan := make(chan gamecomm.ChanResponse)
