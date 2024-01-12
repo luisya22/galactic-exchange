@@ -12,7 +12,10 @@ import (
 // amount int, itemName world.Resource, planetId string, corporationId uint64
 func (ms *MissionScheduler) CreateTransferMission(m Mission) error {
 
-	ms.CalculateTravelDistance(m)
+	_, err := ms.CalculateTravelDistance(m.CorporationId, m.Squads, m.PlanetId, ms.GameChannels)
+	if err != nil {
+		return err
+	}
 
 	// Leaving Event
 	// Rmove resources from corporation
@@ -20,33 +23,45 @@ func (ms *MissionScheduler) CreateTransferMission(m Mission) error {
 
 	le := &Event{
 		MissionId: m.Id,
-		Time:      ms.gameClock.GetCurrentTime(),
+		Time:      ms.GameClock.GetCurrentTime(),
 		Cancelled: false,
 		Execute:   tsLeavingEvent,
 	}
 
-	ms.eventScheduler.Schedule(le)
+	leId, err := ms.EventScheduler.Schedule(le)
+	if err != nil {
+		return err
+	}
 
 	ae := &Event{
 		MissionId: m.Id,
-		Time:      ms.gameClock.GetCurrentTime().Add(3 * gameclock.Day),
+		Time:      ms.GameClock.GetCurrentTime().Add(3 * gameclock.Day),
 		Cancelled: false,
 		Execute:   tsArrivalEvent,
 	}
 
-	ms.eventScheduler.Schedule(ae)
+	aeId, err := ms.EventScheduler.Schedule(ae)
+	if err != nil {
+		ms.EventScheduler.UpdateEvent(leId, le.Time, true)
+		return err
+	}
 
 	// Returnal Event
 	// Return squad to base
 
 	bb := &Event{
 		MissionId: m.Id,
-		Time:      ms.gameClock.GetCurrentTime().Add(6 * gameclock.Day),
+		Time:      ms.GameClock.GetCurrentTime().Add(6 * gameclock.Day),
 		Cancelled: false,
 		Execute:   tsBackToBase,
 	}
 
-	ms.eventScheduler.Schedule(bb)
+	_, err = ms.EventScheduler.Schedule(bb)
+	if err != nil {
+		ms.EventScheduler.UpdateEvent(aeId, ae.Time, true)
+		ms.EventScheduler.UpdateEvent(leId, le.Time, true)
+		return err
+	}
 
 	return nil
 
@@ -58,14 +73,13 @@ func tsLeavingEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 
 		removedAmount, err := removeResourcesFromCorporation(mission.CorporationId, mission.Amount, resource, gameChannels)
 		if err != nil {
-			fmt.Println(err.Error()) // TODO: Handle error correctly
-			return
+			mission.ErrorChan <- err
+			removedAmount = mission.Amount
 		}
 
 		err = addResourcesToSquad(mission.CorporationId, removedAmount, resource, gameChannels)
 		if err != nil {
-			fmt.Println(err.Error()) // TODO: Handle error correctly
-			return
+			mission.ErrorChan <- err
 		}
 
 	}
@@ -77,7 +91,7 @@ func tsArrivalEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 
 	sumCredits := 0.0
 	for _, resource := range mission.Resources {
-		removedAmount, err := removeResourcesFromSquad(mission.CorporationId, resource, gameChannels)
+		removedAmount, err := removeAllResourcesFromSquad(mission.CorporationId, resource, gameChannels)
 		if err != nil {
 			fmt.Println(err.Error())
 			return
@@ -106,40 +120,4 @@ func tsArrivalEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 func tsBackToBase(mission *Mission, gameChannels *gamecomm.GameChannels) {
 	// TODO: In the future make the squad available again
 	mission.NotificationChan <- fmt.Sprintf("Mission Notification: Squad %v is back to base", mission.Squads[0])
-}
-
-func (ms *MissionScheduler) CalculateTravelDistance(m Mission) {
-	squadId := m.Squads[0]
-	squad, err := getSquad(m.CorporationId, squadId, ms.eventScheduler.gameChannels)
-	if err != nil {
-		fmt.Println(err.Error()) //TODO: Handle error
-		return
-	}
-
-	// GET PLANET
-	planetResChan := make(chan gamecomm.ChanResponse)
-	planetCommand := gamecomm.WorldCommand{
-		PlanetId:        m.PlanetId,
-		Action:          gamecomm.GetPlanet,
-		ResponseChannel: planetResChan,
-	}
-	ms.eventScheduler.gameChannels.WorldChannel <- planetCommand
-
-	planetRes := <-planetResChan
-	if planetRes.Err != nil {
-		fmt.Println(planetRes.Err.Error())
-		return
-	}
-
-	planet := planetRes.Val.(gamecomm.Planet)
-	close(planetResChan)
-
-	// CALCULATE SHIP SPEED
-	shipSpeed := squad.Ships.Speed
-	squadLocation := gamecomm.Coordinates{X: squad.Location.X, Y: squad.Location.Y}
-	planetLocation := gamecomm.Coordinates{X: planet.Location.X, Y: planet.Location.Y}
-
-	planetDistance := gamecomm.Distance(squadLocation, planetLocation)
-	_ = planetDistance / float64(shipSpeed)
-
 }

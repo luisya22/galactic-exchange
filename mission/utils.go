@@ -3,13 +3,12 @@ package mission
 import (
 	"fmt"
 
-	"github.com/luisya22/galactic-exchange/corporation"
 	"github.com/luisya22/galactic-exchange/gamecomm"
 )
 
 // TODO: Close channels on producers
 
-func getSquad(corporationId uint64, squadId int, gameChannels *gamecomm.GameChannels) (corporation.Squad, error) {
+func getSquad(corporationId uint64, squadId int, gameChannels *gamecomm.GameChannels) (gamecomm.Squad, error) {
 
 	squadResChan := make(chan gamecomm.ChanResponse)
 	defer close(squadResChan)
@@ -24,12 +23,12 @@ func getSquad(corporationId uint64, squadId int, gameChannels *gamecomm.GameChan
 
 	squadRes := <-squadResChan
 	if squadRes.Err != nil {
-		fmt.Printf("erro: %v\n", squadRes.Err.Error())
+		return gamecomm.Squad{}, squadRes.Err
 	}
 
-	squad, ok := squadRes.Val.(corporation.Squad)
+	squad, ok := squadRes.Val.(gamecomm.Squad)
 	if !ok {
-		return corporation.Squad{}, fmt.Errorf("world channel returned wrong squad object: %v", squadRes.Val)
+		return gamecomm.Squad{}, fmt.Errorf("world channel returned wrong squad object: %v", squadRes.Val)
 	}
 
 	return squad, nil
@@ -42,7 +41,7 @@ func removeResourceFromPlanet(planetId string, resourceAmount int, resource stri
 
 	gameChannels.WorldChannel <- gamecomm.WorldCommand{
 		PlanetId:        planetId,
-		Action:          gamecomm.AddResourcesToPlanet,
+		Action:          gamecomm.RemoveResourcesFromPlanet,
 		Amount:          resourceAmount,
 		ResponseChannel: responseChan,
 		Resource:        resource,
@@ -80,7 +79,25 @@ func addResourcesToSquad(corporationId uint64, resourceAmount int, resource stri
 	return nil
 }
 
-func removeResourcesFromSquad(corporationId uint64, resource string, gameChannels *gamecomm.GameChannels) (int, error) {
+func removeResourcesFromSquad(corporationId uint64, resource string, amount int, gameChannels *gamecomm.GameChannels) (int, error) {
+	removeResChan := make(chan gamecomm.ChanResponse)
+	gameChannels.CorpChannel <- gamecomm.CorpCommand{
+		Action:          gamecomm.RemoveResourcesFromSquad,
+		ResponseChannel: removeResChan,
+		CorporationId:   corporationId,
+		Resource:        resource,
+		Amount:          amount,
+	}
+
+	removedAmountRes := <-removeResChan
+	if removedAmountRes.Err != nil {
+		return 0, removedAmountRes.Err
+	}
+
+	return removedAmountRes.Val.(int), nil
+}
+
+func removeAllResourcesFromSquad(corporationId uint64, resource string, gameChannels *gamecomm.GameChannels) (int, error) {
 	removeResChan := make(chan gamecomm.ChanResponse)
 	gameChannels.CorpChannel <- gamecomm.CorpCommand{
 		Action:          gamecomm.RemoveResourcesFromSquad,
@@ -95,6 +112,7 @@ func removeResourcesFromSquad(corporationId uint64, resource string, gameChannel
 	}
 
 	return removedAmountRes.Val.(int), nil
+
 }
 
 func removeResourcesFromCorporation(corporationId uint64, amount int, resource string, gameChannels *gamecomm.GameChannels) (int, error) {

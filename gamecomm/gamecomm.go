@@ -59,6 +59,7 @@ const (
 	GetSquad
 	AddResourcesToSquad
 	RemoveResourcesFromSquad
+	RemoveAllResourcesFromSquad
 	AddResourcesToBase
 	RemoveResourcesFromBase
 	AddCredits

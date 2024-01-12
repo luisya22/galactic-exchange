@@ -11,11 +11,13 @@ import (
 )
 
 type MissionScheduler struct {
-	missions       map[string]*Mission
-	eventScheduler *EventScheduler
-	missionChannel chan gamecomm.MissionCommand
+	Missions       map[string]*Mission
+	EventScheduler EventScheduler
+	MissionChannel chan gamecomm.MissionCommand
 	RW             sync.RWMutex
-	gameClock      *gameclock.GameClock
+	GameClock      *gameclock.GameClock
+	GameChannels   *gamecomm.GameChannels
+	ErrorChan      chan error
 }
 
 type Mission struct {
@@ -28,8 +30,9 @@ type Mission struct {
 	Status           string
 	Type             gamecomm.MissionType
 	Resources        []string
-	NotificationChan chan string
 	Amount           int // TODO: You should have and object for transfers {resource, amount}
+	NotificationChan chan string
+	ErrorChan        chan error
 }
 
 // startMission
@@ -43,20 +46,23 @@ func NewMissionScheduler(gameChannels *gamecomm.GameChannels, gc *gameclock.Game
 	eventScheduler := NewEventScheduler(gameChannels, missions, gc)
 
 	return &MissionScheduler{
-		missions:       missions,
-		eventScheduler: eventScheduler,
-		missionChannel: gameChannels.MissionChannel,
-		gameClock:      gc,
+		Missions:       missions,
+		EventScheduler: eventScheduler,
+		MissionChannel: gameChannels.MissionChannel,
+		GameClock:      gc,
+		GameChannels:   gameChannels,
 	}
 }
 
+// TODO: Add Wait Group
 func (ms *MissionScheduler) Run() {
 
-	go ms.eventScheduler.Run()
+	go ms.EventScheduler.Run()
+	go ms.handleErrors()
 
-	for m := range ms.missionChannel {
+	for m := range ms.MissionChannel {
 
-		mission, err := CreateMission(m)
+		mission, err := CreateMission(m, ms.ErrorChan)
 		if err != nil {
 			continue
 		}
@@ -65,7 +71,14 @@ func (ms *MissionScheduler) Run() {
 	}
 }
 
-func CreateMission(mc gamecomm.MissionCommand) (Mission, error) {
+// TODO: Correctly handle errors
+func (ms *MissionScheduler) handleErrors() {
+	for err := range ms.ErrorChan {
+		fmt.Println(err)
+	}
+}
+
+func CreateMission(mc gamecomm.MissionCommand, errorChan chan error) (Mission, error) {
 
 	uuid, err := uuid.NewUUID()
 	if err != nil {
@@ -86,6 +99,7 @@ func CreateMission(mc gamecomm.MissionCommand) (Mission, error) {
 		Resources:        mc.Resources,
 		NotificationChan: mc.NotificationChan,
 		Amount:           mc.Amount,
+		ErrorChan:        errorChan,
 	}
 
 	return mission, nil
@@ -93,20 +107,65 @@ func CreateMission(mc gamecomm.MissionCommand) (Mission, error) {
 
 func (ms *MissionScheduler) StartMission(m Mission) {
 	ms.RW.Lock()
-	ms.missions[m.Id] = &m
+	ms.Missions[m.Id] = &m
 	ms.RW.Unlock()
 
 	switch m.Type {
 	case gamecomm.SquadMission:
-		ms.CreateSquadMission(m)
+		err := ms.CreateSquadMission(m)
+		if err != nil {
+			delete(ms.Missions, m.Id)
+			m.NotificationChan <- err.Error()
+		}
 	case gamecomm.TransferMission:
 		err := ms.CreateTransferMission(m)
 		if err != nil {
+			delete(ms.Missions, m.Id)
 			m.NotificationChan <- err.Error()
 		}
 	default:
 		ms.RW.Lock()
-		delete(ms.missions, m.Id)
+		delete(ms.Missions, m.Id)
 		ms.RW.Unlock()
 	}
+}
+
+func (msz *MissionScheduler) CalculateTravelDistance(corporationId uint64, squads []int, planetId string, gameChannels *gamecomm.GameChannels) (float64, error) {
+
+	if len(squads) == 0 {
+		return 0.0, fmt.Errorf("error: should include squads")
+	}
+
+	squadId := squads[0]
+	squad, err := getSquad(corporationId, squadId, gameChannels)
+	if err != nil {
+		return 0.0, err
+	}
+
+	// GET PLANET
+	planetResChan := make(chan gamecomm.ChanResponse)
+	planetCommand := gamecomm.WorldCommand{
+		PlanetId:        planetId,
+		Action:          gamecomm.GetPlanet,
+		ResponseChannel: planetResChan,
+	}
+	gameChannels.WorldChannel <- planetCommand
+
+	planetRes := <-planetResChan
+	if planetRes.Err != nil {
+		return 0.0, planetRes.Err
+	}
+
+	planet := planetRes.Val.(gamecomm.Planet)
+	close(planetResChan)
+
+	// CALCULATE SHIP SPEED
+	shipSpeed := squad.Ships.Speed
+	squadLocation := gamecomm.Coordinates{X: squad.Location.X, Y: squad.Location.Y}
+	planetLocation := gamecomm.Coordinates{X: planet.Location.X, Y: planet.Location.Y}
+
+	planetDistance := gamecomm.Distance(squadLocation, planetLocation)
+	_ = planetDistance / float64(shipSpeed)
+
+	return planetDistance, nil
 }

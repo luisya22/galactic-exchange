@@ -82,6 +82,18 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 			}
 
 			command.ResponseChannel <- gamecomm.ChanResponse{Val: amount}
+		case gamecomm.RemoveAllResourcesFromSquad:
+			corp, err := cg.findCorporationReference(command.CorporationId)
+			if err != nil {
+				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
+				continue
+			}
+
+			amount, err := corp.RemoveAllResourcesFromSquad(command.SquadIndex, world.Resource(command.Resource))
+			if err != nil {
+				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
+				continue
+			}
 		case gamecomm.AddCredits:
 			credits, err := cg.AddCredits(command.CorporationId, command.AmountDecimal)
 			if err != nil {

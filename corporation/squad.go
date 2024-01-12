@@ -29,8 +29,6 @@ func (c *Corporation) GetSquadReference(squadIndex int) (Squad, error) {
 		return Squad{}, fmt.Errorf("error: squad not found %v", squadIndex)
 	}
 
-	fmt.Println()
-
 	return *c.Squads[squadIndex], nil
 }
 
@@ -44,8 +42,6 @@ func (c *Corporation) GetSquad(squadIndex int) (gamecomm.Squad, error) {
 	if squadIndex >= len(c.Squads) {
 		return gamecomm.Squad{}, fmt.Errorf("error: squad not found %v", squadIndex)
 	}
-
-	fmt.Println()
 
 	squad := *c.Squads[squadIndex]
 
@@ -94,6 +90,24 @@ func (c *Corporation) RemoveResourcesFromSquad(squadIndex int, resource world.Re
 	squad.Cargo[resource] -= amount
 
 	return squad.Cargo[resource], nil
+}
+
+func (c *Corporation) RemoveAllResourcesFromSquad(squadIndex int, resource world.Resource) (int, error) {
+	var squad *Squad
+
+	c.Rw.Lock()
+	defer c.Rw.Unlock()
+
+	if squadIndex >= len(c.Squads) {
+		return 0, fmt.Errorf("error: squad not found %v", squadIndex)
+	}
+
+	squad = c.Squads[squadIndex]
+
+	squad.Cargo[resource] = 0
+
+	return squad.Cargo[resource], nil
+
 }
 
 func (s *Squad) copy() gamecomm.Squad {
