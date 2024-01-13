@@ -42,7 +42,11 @@ func (ms *MissionScheduler) CreateTransferMission(m Mission) error {
 
 	aeId, err := ms.EventScheduler.Schedule(ae)
 	if err != nil {
-		ms.EventScheduler.UpdateEvent(leId, le.Time, true)
+		updateErr := ms.EventScheduler.UpdateEvent(leId, le.Time, true)
+		if updateErr != nil {
+			return updateErr
+		}
+
 		return err
 	}
 
@@ -58,8 +62,15 @@ func (ms *MissionScheduler) CreateTransferMission(m Mission) error {
 
 	_, err = ms.EventScheduler.Schedule(bb)
 	if err != nil {
-		ms.EventScheduler.UpdateEvent(aeId, ae.Time, true)
-		ms.EventScheduler.UpdateEvent(leId, le.Time, true)
+		updateErr := ms.EventScheduler.UpdateEvent(aeId, ae.Time, true)
+		if updateErr != nil {
+			return updateErr
+		}
+
+		updateErr = ms.EventScheduler.UpdateEvent(leId, le.Time, true)
+		if updateErr != nil {
+			return updateErr
+		}
 		return err
 	}
 
