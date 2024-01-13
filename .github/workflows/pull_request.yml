@@ -22,6 +22,9 @@ jobs:
         run: |
           go test ./... -v -race
 
+      - name: Clear Module Cache
+        run: go clean -modcache
+
       - name: Linter golanci
         uses: golangci/golangci-lint-action@v3
         with:
