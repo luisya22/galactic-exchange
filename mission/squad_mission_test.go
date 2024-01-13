@@ -379,7 +379,7 @@ func waitForErrorOrTimeout(t *testing.T, errorChannel chan error, resErr error) 
 	select {
 	case err := <-errorChannel:
 		assert.Error(t, err)
-		assert.Equal(t, err, resErr)
+		assert.Equal(t, err.Error(), resErr.Error())
 	case <-timer.C:
 		t.Errorf("did not receive error on addResourceToSquad")
 	}
