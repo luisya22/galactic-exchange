@@ -7,17 +7,21 @@ import (
 	"github.com/luisya22/galactic-exchange/gamecomm"
 )
 
-func (ms *MissionScheduler) CreateSquadMission(m Mission) {
+// TODO: let mission scheduler that a mission is completed so it can erase it
+func (ms *MissionScheduler) CreateSquadMission(m Mission) error {
 	// TODO: Random events could affect mission times
 
 	// TODO: What happen if squads are on different positions?
 
+	if len(m.Squads) == 0 {
+		return fmt.Errorf("error: should include squads")
+	}
+
 	// GET SQUAD
 	squadId := m.Squads[0]
-	squad, err := getSquad(m.CorporationId, squadId, ms.eventScheduler.gameChannels)
+	squad, err := getSquad(m.CorporationId, squadId, ms.GameChannels)
 	if err != nil {
-		fmt.Println(err.Error()) //TODO: Handle error
-		return
+		return err
 	}
 
 	// GET PLANET
@@ -27,12 +31,11 @@ func (ms *MissionScheduler) CreateSquadMission(m Mission) {
 		Action:          gamecomm.GetPlanet,
 		ResponseChannel: planetResChan,
 	}
-	ms.eventScheduler.gameChannels.WorldChannel <- planetCommand
+	ms.GameChannels.WorldChannel <- planetCommand
 
 	planetRes := <-planetResChan
 	if planetRes.Err != nil {
-		fmt.Println(planetRes.Err.Error())
-		return
+		return planetRes.Err
 	}
 
 	planet := planetRes.Val.(gamecomm.Planet)
@@ -49,32 +52,60 @@ func (ms *MissionScheduler) CreateSquadMission(m Mission) {
 	// CREATE ARRIVE EVENT
 	ae := Event{
 		MissionId: m.Id,
-		Time:      ms.gameClock.GetCurrentTime(),
+		Time:      ms.GameClock.GetCurrentTime(),
 		Cancelled: false,
 		Execute:   arrivingEvent,
 	}
 
-	ms.eventScheduler.Schedule(&ae)
+	aeId, err := ms.EventScheduler.Schedule(&ae)
+	if err != nil {
+		return err
+	}
 
 	// CREATE HARVESTING RESOURCES EVENT
 	he := Event{
 		MissionId: m.Id,
-		Time:      ms.gameClock.GetCurrentTime().Add(2 * gameclock.Day),
+		Time:      ms.GameClock.GetCurrentTime().Add(2 * gameclock.Day),
 		Cancelled: false,
 		Execute:   harvestingEvent,
 	}
 
-	ms.eventScheduler.Schedule(&he)
+	heId, err := ms.EventScheduler.Schedule(&he)
+	if err != nil {
+		updateErr := ms.EventScheduler.UpdateEvent(aeId, ae.Time, true)
+		if updateErr != nil {
+			return updateErr
+		}
+
+		return err
+	}
 
 	// CREATE RETURN EVENT
 	re := Event{
 		MissionId: m.Id,
-		Time:      ms.gameClock.GetCurrentTime().Add(3 * gameclock.Day),
+		Time:      ms.GameClock.GetCurrentTime().Add(3 * gameclock.Day),
 		Cancelled: false,
 		Execute:   returnEvent,
 	}
 
-	ms.eventScheduler.Schedule(&re)
+	_, err = ms.EventScheduler.Schedule(&re)
+	if err != nil {
+		updateErr := ms.EventScheduler.UpdateEvent(heId, re.Time, true)
+		if updateErr != nil {
+			return updateErr
+		}
+
+		updateErr = ms.EventScheduler.UpdateEvent(aeId, ae.Time, true)
+		if updateErr != nil {
+			return updateErr
+		}
+
+		return err
+	}
+
+	// TODO: If error to schedule it should cancel previous events
+
+	return nil
 }
 
 // - This would send message that we arrive to the mission place
@@ -87,27 +118,29 @@ func arrivingEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 func harvestingEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 
 	// Get Squad
-	squad, err := getSquad(mission.CorporationId, mission.Squads[0], gameChannels)
-	if err != nil {
-		fmt.Println(err.Error()) //TODO: Handle error
-	}
+	// squad, err := getSquad(mission.CorporationId, mission.Squads[0], gameChannels)
+	// if err != nil {
+	// 	fmt.Println(err.Error()) //TODO: Handle error
+	// }
 
 	for _, resource := range mission.Resources {
 		// Generate harvested resourcesAmount
 
-		bonus := squad.GetHarvestingBonus()
+		// TODO: check this later
+		// bonus := squad.GetHarvestingBonus()
+		bonus := 2
 		resourceAmount := 100 * bonus
 
 		// Remove Resources from planet
 		err := removeResourceFromPlanet(mission.PlanetId, resourceAmount, resource, gameChannels)
 		if err != nil {
-			fmt.Println(err)
+			mission.ErrorChan <- err
 		}
 
 		// Add Resources to Squad
 		err = addResourcesToSquad(mission.CorporationId, resourceAmount, resource, gameChannels)
 		if err != nil {
-			fmt.Println(err)
+			mission.ErrorChan <- err
 		}
 	}
 
@@ -121,11 +154,11 @@ func returnEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 
 	mission.NotificationChan <- fmt.Sprintf("Mission Notification: Squad %v returned to base.", mission.Squads)
 	for _, resource := range mission.Resources {
+		var amount int
 
-		removedAmount, err := removeResourcesFromSquad(mission.CorporationId, resource, gameChannels)
+		removedAmount, err := removeAllResourcesFromSquad(mission.CorporationId, resource, gameChannels)
 		if err != nil {
-			fmt.Println(err.Error()) // TODO: Handle Error correctly
-			return
+			mission.ErrorChan <- err
 		}
 
 		baseResChan := make(chan gamecomm.ChanResponse)
@@ -140,10 +173,11 @@ func returnEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 
 		res := <-baseResChan
 		if res.Err != nil {
-			fmt.Println(res.Err) // TODO: Handle error
-			return
+			mission.ErrorChan <- res.Err
+			amount = removedAmount
+		} else {
+			amount = res.Val.(int)
 		}
-		amount := res.Val.(int)
 
 		mission.NotificationChan <- fmt.Sprintf("Mission Notification: Added to base %v -> #%v", resource, amount)
 	}

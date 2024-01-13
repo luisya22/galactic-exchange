@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/luisya22/galactic-exchange/gameclock"
 	"github.com/luisya22/galactic-exchange/gamecomm"
 )
@@ -18,7 +19,13 @@ type Event struct {
 	Execute   func(*Mission, *gamecomm.GameChannels)
 }
 
-type EventScheduler struct {
+type EventScheduler interface {
+	Schedule(*Event) (string, error)
+	UpdateEvent(string, gameclock.GameTime, bool) error
+	Run()
+}
+
+type DefaultEventScheduler struct {
 	events       map[string]*Event
 	queue        EventQueue
 	rw           sync.RWMutex
@@ -27,8 +34,8 @@ type EventScheduler struct {
 	gameClock    *gameclock.GameClock
 }
 
-func NewEventScheduler(gameChannels *gamecomm.GameChannels, missions map[string]*Mission, gc *gameclock.GameClock) *EventScheduler {
-	return &EventScheduler{
+func NewEventScheduler(gameChannels *gamecomm.GameChannels, missions map[string]*Mission, gc *gameclock.GameClock) *DefaultEventScheduler {
+	return &DefaultEventScheduler{
 		events:       make(map[string]*Event),
 		queue:        make(EventQueue, 0),
 		gameChannels: gameChannels,
@@ -37,14 +44,24 @@ func NewEventScheduler(gameChannels *gamecomm.GameChannels, missions map[string]
 	}
 }
 
-func (s *EventScheduler) Schedule(e *Event) {
+func (s *DefaultEventScheduler) Schedule(e *Event) (string, error) {
+
+	uuid, err := uuid.NewUUID()
+	if err != nil {
+		return "", fmt.Errorf("error: %v", err)
+	}
+
+	e.Id = uuid.String()
+
 	s.rw.Lock()
 	s.events[e.Id] = e
 	heap.Push(&s.queue, e)
 	s.rw.Unlock()
+
+	return e.Id, nil
 }
 
-func (s *EventScheduler) UpdateEvent(eventId string, newTime gameclock.GameTime, cancelled bool) error {
+func (s *DefaultEventScheduler) UpdateEvent(eventId string, newTime gameclock.GameTime, cancelled bool) error {
 	var event *Event
 	var ok bool
 
@@ -59,7 +76,7 @@ func (s *EventScheduler) UpdateEvent(eventId string, newTime gameclock.GameTime,
 	return nil
 }
 
-func (s *EventScheduler) Run() {
+func (s *DefaultEventScheduler) Run() {
 	for {
 		if len(s.queue) == 0 {
 			continue
