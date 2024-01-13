@@ -104,22 +104,21 @@ func tsArrivalEvent(mission *Mission, gameChannels *gamecomm.GameChannels) {
 	for _, resource := range mission.Resources {
 		removedAmount, err := removeAllResourcesFromSquad(mission.CorporationId, resource, gameChannels)
 		if err != nil {
-			fmt.Println(err.Error())
-			return
+			removedAmount = mission.Amount
+			mission.ErrorChan <- err
 		}
 
 		err = addResourcesToPlanet(mission.PlanetId, removedAmount, resource, gameChannels)
 		if err != nil {
-			fmt.Println(err.Error())
-			return
+			mission.ErrorChan <- err
 		}
 
 		// TODO fix prices, build a economy module that get the actual price. It would depend on various things (current contract between base and corporation, zone prices, base item price, sanctions)
 		credits := float64(removedAmount * 2)
 		err = addCreditsToCorporation(mission.CorporationId, credits, gameChannels)
 		if err != nil {
-			fmt.Println(err.Error())
-			return
+			mission.ErrorChan <- err
+			continue
 		}
 
 		sumCredits += credits
