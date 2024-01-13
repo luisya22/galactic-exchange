@@ -100,7 +100,7 @@ func addResourcesToSquad(corporationId uint64, resourceAmount int, resource stri
 func removeAllResourcesFromSquad(corporationId uint64, resource string, gameChannels *gamecomm.GameChannels) (int, error) {
 	removeResChan := make(chan gamecomm.ChanResponse)
 	gameChannels.CorpChannel <- gamecomm.CorpCommand{
-		Action:          gamecomm.RemoveResourcesFromSquad,
+		Action:          gamecomm.RemoveAllResourcesFromSquad,
 		ResponseChannel: removeResChan,
 		CorporationId:   corporationId,
 		Resource:        resource,
@@ -141,6 +141,7 @@ func addResourcesToPlanet(planetId string, resourceAmount int, resource string, 
 		ResponseChannel: addResChan,
 		PlanetId:        planetId,
 		Resource:        resource,
+		Amount:          resourceAmount,
 	}
 
 	addRes := <-addResChan

@@ -230,7 +230,7 @@ func TestReturnEvent(t *testing.T) {
 				removeResourcesFromSquadCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
 					Resource:      string(world.Iron),
-					Action:        gamecomm.RemoveResourcesFromSquad,
+					Action:        gamecomm.RemoveAllResourcesFromSquad,
 				},
 				removeResourcesFromSquadShouldError: false,
 				addResourceToBaseCommand: gamecomm.CorpCommand{
@@ -258,7 +258,7 @@ func TestReturnEvent(t *testing.T) {
 				removeResourcesFromSquadCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
 					Resource:      string(world.Iron),
-					Action:        gamecomm.RemoveResourcesFromSquad,
+					Action:        gamecomm.RemoveAllResourcesFromSquad,
 				},
 				removeResourcesFromSquadShouldError: true,
 				addResourceToBaseCommand: gamecomm.CorpCommand{
@@ -286,7 +286,7 @@ func TestReturnEvent(t *testing.T) {
 					CorporationId: 1,
 					Amount:        0,
 					Resource:      string(world.Iron),
-					Action:        gamecomm.RemoveResourcesFromSquad,
+					Action:        gamecomm.RemoveAllResourcesFromSquad,
 				},
 				removeResourcesFromSquadShouldError: false,
 				addResourceToBaseCommand: gamecomm.CorpCommand{
@@ -353,7 +353,6 @@ func TestReturnEvent(t *testing.T) {
 
 		})
 	}
-
 }
 
 func assertCorpCommand(t *testing.T, got gamecomm.CorpCommand, wants gamecomm.CorpCommand) {
@@ -379,8 +378,11 @@ func waitForErrorOrTimeout(t *testing.T, errorChannel chan error, resErr error) 
 	select {
 	case err := <-errorChannel:
 		assert.Error(t, err)
-		assert.Equal(t, err.Error(), resErr.Error())
+
+		if resErr != nil && err != nil {
+			assert.Equal(t, err.Error(), resErr.Error())
+		}
 	case <-timer.C:
-		t.Errorf("did not receive error on addResourceToSquad")
+		t.Errorf("did not receive error")
 	}
 }
