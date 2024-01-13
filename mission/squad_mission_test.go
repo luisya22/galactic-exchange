@@ -384,5 +384,6 @@ func waitForErrorOrTimeout(t *testing.T, errorChannel chan error, resErr error) 
 		}
 	case <-timer.C:
 		t.Errorf("did not receive error")
+
 	}
 }
