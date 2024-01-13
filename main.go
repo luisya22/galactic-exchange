@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/luisya22/galactic-exchange/game"
+	"github.com/luisya22/galactic-exchange/internal/game"
 )
 
 func main() {
