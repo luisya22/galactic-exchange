@@ -32,7 +32,10 @@ type DefaultEventScheduler struct {
 	gameChannels *gamecomm.GameChannels
 	missions     map[string]*Mission
 	gameClock    *gameclock.GameClock
+	idGenerator  IdGeneratorFunc
 }
+
+type IdGeneratorFunc func(*Event) error
 
 func NewEventScheduler(gameChannels *gamecomm.GameChannels, missions map[string]*Mission, gc *gameclock.GameClock) *DefaultEventScheduler {
 	return &DefaultEventScheduler{
@@ -41,17 +44,27 @@ func NewEventScheduler(gameChannels *gamecomm.GameChannels, missions map[string]
 		gameChannels: gameChannels,
 		missions:     missions,
 		gameClock:    gc,
+		idGenerator:  uuidGenerator,
 	}
+}
+
+func uuidGenerator(e *Event) error {
+	uuid, err := uuid.NewUUID()
+	if err != nil {
+		return fmt.Errorf("error: %v", err)
+	}
+
+	e.Id = uuid.String()
+
+	return nil
 }
 
 func (s *DefaultEventScheduler) Schedule(e *Event) (string, error) {
 
-	uuid, err := uuid.NewUUID()
+	err := s.idGenerator(e)
 	if err != nil {
-		return "", fmt.Errorf("error: %v", err)
+		return "", err
 	}
-
-	e.Id = uuid.String()
 
 	s.rw.Lock()
 	s.events[e.Id] = e
@@ -82,7 +95,9 @@ func (s *DefaultEventScheduler) Run() {
 			continue
 		}
 
+		s.rw.Lock()
 		event := heap.Pop(&s.queue).(*Event)
+		s.rw.Unlock()
 
 		if event.Cancelled {
 			s.rw.Lock()
@@ -99,7 +114,9 @@ func (s *DefaultEventScheduler) Run() {
 			delete(s.events, event.Id)
 			s.rw.Unlock()
 		} else {
+			s.rw.Lock()
 			heap.Push(&s.queue, event)
+			s.rw.Unlock()
 		}
 
 	}

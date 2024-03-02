@@ -92,7 +92,6 @@ func Start() error {
 
 	// <command> args...
 	for {
-		fmt.Print("Enter command: ")
 		input, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Printf("Problem reading input: %v", err.Error())
