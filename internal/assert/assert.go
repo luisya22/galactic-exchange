@@ -54,3 +54,11 @@ func Error(t *testing.T, actual error) {
 		t.Errorf("got: %v; expected: not nil", actual)
 	}
 }
+
+func MapContains[T any](t *testing.T, m map[string]T, k string, v T) {
+	t.Helper()
+
+	if _, ok := m[k]; !ok {
+		t.Errorf("%v not found on map", k)
+	}
+}

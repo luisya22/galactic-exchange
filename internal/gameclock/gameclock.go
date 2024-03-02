@@ -40,6 +40,7 @@ func NewGameClock(initialTime GameTime, gameSpeedMultiplier float64) *GameClock 
 }
 
 func (gc *GameClock) Update() {
+
 	gc.rw.Lock()
 	defer gc.rw.Unlock()
 
