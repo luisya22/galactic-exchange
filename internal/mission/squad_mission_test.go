@@ -7,7 +7,6 @@ import (
 
 	"github.com/luisya22/galactic-exchange/internal/assert"
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
-	"github.com/luisya22/galactic-exchange/internal/world"
 )
 
 func TestArrivingEvent(t *testing.T) {
@@ -71,7 +70,7 @@ func TestHarvestingEvent(t *testing.T) {
 				CorporationId: 1,
 				Squads:        []int{0},
 				PlanetId:      "Planet 1",
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			removeResourcesFromPlanetResponse: gamecomm.ChanResponse{Val: 1},
 			addResourcesToSquadResponse:       gamecomm.ChanResponse{Val: 1},
@@ -79,14 +78,14 @@ func TestHarvestingEvent(t *testing.T) {
 				removeResourceFromPlanetCommand: gamecomm.WorldCommand{
 					PlanetId: "Planet 1",
 					Amount:   200,
-					Resource: string(world.Iron),
+					Resource: "iron",
 					Action:   gamecomm.RemoveResourcesFromPlanet,
 				},
 				removeResourceFromPlanetShouldError: false,
 				addResourceToSquad: gamecomm.CorpCommand{
 					CorporationId: 1,
 					Amount:        200,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.AddResourcesToSquad,
 				},
 				addResourceToSquadShouldError: false,
@@ -99,7 +98,7 @@ func TestHarvestingEvent(t *testing.T) {
 				CorporationId: 1,
 				Squads:        []int{0},
 				PlanetId:      "Planet 1",
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			removeResourcesFromPlanetResponse: gamecomm.ChanResponse{Err: fmt.Errorf("error: test error")},
 			addResourcesToSquadResponse:       gamecomm.ChanResponse{Val: 1},
@@ -107,14 +106,14 @@ func TestHarvestingEvent(t *testing.T) {
 				removeResourceFromPlanetCommand: gamecomm.WorldCommand{
 					PlanetId: "Planet 1",
 					Amount:   200,
-					Resource: string(world.Iron),
+					Resource: "iron",
 					Action:   gamecomm.RemoveResourcesFromPlanet,
 				},
 				removeResourceFromPlanetShouldError: true,
 				addResourceToSquad: gamecomm.CorpCommand{
 					CorporationId: 1,
 					Amount:        200,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.AddResourcesToSquad,
 				},
 				addResourceToSquadShouldError: false,
@@ -127,7 +126,7 @@ func TestHarvestingEvent(t *testing.T) {
 				CorporationId: 1,
 				Squads:        []int{0},
 				PlanetId:      "Planet 1",
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			removeResourcesFromPlanetResponse: gamecomm.ChanResponse{Val: 1},
 			addResourcesToSquadResponse:       gamecomm.ChanResponse{Err: fmt.Errorf("error: test error")},
@@ -135,14 +134,14 @@ func TestHarvestingEvent(t *testing.T) {
 				removeResourceFromPlanetCommand: gamecomm.WorldCommand{
 					PlanetId: "Planet 1",
 					Amount:   200,
-					Resource: string(world.Iron),
+					Resource: "iron",
 					Action:   gamecomm.RemoveResourcesFromPlanet,
 				},
 				removeResourceFromPlanetShouldError: false,
 				addResourceToSquad: gamecomm.CorpCommand{
 					CorporationId: 1,
 					Amount:        200,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.AddResourcesToSquad,
 				},
 				addResourceToSquadShouldError: true,
@@ -222,21 +221,21 @@ func TestReturnEvent(t *testing.T) {
 				CorporationId: 1,
 				Squads:        []int{0},
 				PlanetId:      "Planet 1",
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			removeResourcesFromSquadResponse: gamecomm.ChanResponse{Val: 1},
 			addResourceToBaseResponse:        gamecomm.ChanResponse{Val: 1},
 			wants: testResult{
 				removeResourcesFromSquadCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.RemoveAllResourcesFromSquad,
 				},
 				removeResourcesFromSquadShouldError: false,
 				addResourceToBaseCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
 					Amount:        1,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.AddResourcesToBase,
 				},
 				addResourceToBaseShouldError: false,
@@ -250,20 +249,20 @@ func TestReturnEvent(t *testing.T) {
 				CorporationId: 1,
 				Squads:        []int{0},
 				PlanetId:      "Planet 1",
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			removeResourcesFromSquadResponse: gamecomm.ChanResponse{Err: fmt.Errorf("error: test error")},
 			addResourceToBaseResponse:        gamecomm.ChanResponse{Val: 1},
 			wants: testResult{
 				removeResourcesFromSquadCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.RemoveAllResourcesFromSquad,
 				},
 				removeResourcesFromSquadShouldError: true,
 				addResourceToBaseCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.AddResourcesToBase,
 				},
 				addResourceToBaseShouldError: false,
@@ -277,7 +276,7 @@ func TestReturnEvent(t *testing.T) {
 				CorporationId: 1,
 				Squads:        []int{0},
 				PlanetId:      "Planet 1",
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			removeResourcesFromSquadResponse: gamecomm.ChanResponse{Val: 1},
 			addResourceToBaseResponse:        gamecomm.ChanResponse{Err: fmt.Errorf("error: test error")},
@@ -285,14 +284,14 @@ func TestReturnEvent(t *testing.T) {
 				removeResourcesFromSquadCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
 					Amount:        0,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.RemoveAllResourcesFromSquad,
 				},
 				removeResourcesFromSquadShouldError: false,
 				addResourceToBaseCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
 					Amount:        1,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.AddResourcesToBase,
 				},
 				addResourceToBaseShouldError: true,

@@ -30,7 +30,7 @@ func (w *World) worker(ch <-chan gamecomm.WorldCommand) {
 			}
 
 		case gamecomm.AddResourcesToPlanet:
-			amount, err := w.AddResourcesToPlanet(command.PlanetId, Resource(command.Resource), command.Amount)
+			amount, err := w.AddResourcesToPlanet(command.PlanetId, command.Resource, command.Amount)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
 			}
@@ -41,7 +41,7 @@ func (w *World) worker(ch <-chan gamecomm.WorldCommand) {
 			}
 
 		case gamecomm.RemoveResourcesFromPlanet:
-			amount, err := w.RemoveResourcesFromPlanet(command.PlanetId, Resource(command.Resource), command.Amount)
+			amount, err := w.RemoveResourcesFromPlanet(command.PlanetId, command.Resource, command.Amount)
 
 			command.ResponseChannel <- gamecomm.ChanResponse{
 				Val: amount,

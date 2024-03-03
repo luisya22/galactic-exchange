@@ -12,8 +12,8 @@ import (
 type World struct {
 	Planets         map[string]*Planet
 	Zones           map[string]*Zone
-	ResourceRarity  map[Resource]Rarity
-	AllResources    map[Resource]ResourceInfo
+	ResourceRarity  map[string]Rarity
+	AllResources    map[string]ResourceInfo
 	AllZoneTypes    map[LayerName]ZoneType
 	LayerBoundaries []float64
 	RandomNumber    *rand.Rand
@@ -27,11 +27,11 @@ func New(gameChannels *gamecomm.GameChannels) *World {
 
 	randomnumber := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	resourceRarity := map[Resource]Rarity{
-		Gold:  Common,
-		Iron:  Common,
-		Water: Scarce,
-		Food:  Rare,
+	resourceRarity := map[string]Rarity{
+		"gold":  Common,
+		"iron":  Common,
+		"Water": Scarce,
+		"Food":  Rare,
 	}
 
 	allResources := CreateWorldResources()

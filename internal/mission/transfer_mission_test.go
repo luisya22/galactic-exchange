@@ -6,7 +6,6 @@ import (
 
 	"github.com/luisya22/galactic-exchange/internal/assert"
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
-	"github.com/luisya22/galactic-exchange/internal/world"
 )
 
 func TestLeavingEvent(t *testing.T) {
@@ -30,7 +29,7 @@ func TestLeavingEvent(t *testing.T) {
 			mission: Mission{
 				CorporationId: 1,
 				Squads:        []int{0},
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 				Amount:        1,
 			},
 			removeResourceFromCorporationResponse: gamecomm.ChanResponse{Val: 1},
@@ -39,14 +38,14 @@ func TestLeavingEvent(t *testing.T) {
 				removeResourcesFromCorporationCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
 					Amount:        1,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.RemoveResourcesFromBase,
 				},
 				removeResourcesFromCorporationShouldError: false,
 				addResourcesToSquadCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
 					Amount:        1,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.AddResourcesToSquad,
 				},
 				addResourcesToSquadShouldError: false,
@@ -58,7 +57,7 @@ func TestLeavingEvent(t *testing.T) {
 			mission: Mission{
 				CorporationId: 1,
 				Squads:        []int{0},
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 				Amount:        1,
 			},
 			removeResourceFromCorporationResponse: gamecomm.ChanResponse{Err: fmt.Errorf("error: test error")},
@@ -67,14 +66,14 @@ func TestLeavingEvent(t *testing.T) {
 				removeResourcesFromCorporationCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
 					Amount:        1,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.RemoveResourcesFromBase,
 				},
 				removeResourcesFromCorporationShouldError: true,
 				addResourcesToSquadCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
 					Amount:        1,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.AddResourcesToSquad,
 				},
 				addResourcesToSquadShouldError: false,
@@ -86,7 +85,7 @@ func TestLeavingEvent(t *testing.T) {
 			mission: Mission{
 				CorporationId: 1,
 				Squads:        []int{0},
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 				Amount:        1,
 			},
 			removeResourceFromCorporationResponse: gamecomm.ChanResponse{Val: 1},
@@ -95,14 +94,14 @@ func TestLeavingEvent(t *testing.T) {
 				removeResourcesFromCorporationCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
 					Amount:        1,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.RemoveResourcesFromBase,
 				},
 				removeResourcesFromCorporationShouldError: false,
 				addResourcesToSquadCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
 					Amount:        1,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.AddResourcesToSquad,
 				},
 				addResourcesToSquadShouldError: true,
@@ -185,7 +184,7 @@ func TestArrivalEvent(t *testing.T) {
 			mission: Mission{
 				CorporationId: 1,
 				Squads:        []int{0},
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 				Amount:        1,
 				PlanetId:      "Planet-1",
 			},
@@ -195,13 +194,13 @@ func TestArrivalEvent(t *testing.T) {
 			wants: testResult{
 				removeAllResourcesFromSquadCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.RemoveAllResourcesFromSquad,
 				},
 				removeAllResourcesFromSquadShouldError: false,
 				addResourcesToPlanetCommand: gamecomm.WorldCommand{
 					PlanetId: "Planet-1",
-					Resource: string(world.Iron),
+					Resource: "iron",
 					Amount:   1,
 					Action:   gamecomm.AddResourcesToPlanet,
 				},
@@ -220,7 +219,7 @@ func TestArrivalEvent(t *testing.T) {
 			mission: Mission{
 				CorporationId: 1,
 				Squads:        []int{0},
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 				Amount:        2,
 				PlanetId:      "Planet-1",
 			},
@@ -230,13 +229,13 @@ func TestArrivalEvent(t *testing.T) {
 			wants: testResult{
 				removeAllResourcesFromSquadCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.RemoveAllResourcesFromSquad,
 				},
 				removeAllResourcesFromSquadShouldError: true,
 				addResourcesToPlanetCommand: gamecomm.WorldCommand{
 					PlanetId: "Planet-1",
-					Resource: string(world.Iron),
+					Resource: "iron",
 					Amount:   2,
 					Action:   gamecomm.AddResourcesToPlanet,
 				},
@@ -255,7 +254,7 @@ func TestArrivalEvent(t *testing.T) {
 			mission: Mission{
 				CorporationId: 1,
 				Squads:        []int{0},
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 				Amount:        1,
 				PlanetId:      "Planet-1",
 			},
@@ -265,13 +264,13 @@ func TestArrivalEvent(t *testing.T) {
 			wants: testResult{
 				removeAllResourcesFromSquadCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.RemoveAllResourcesFromSquad,
 				},
 				removeAllResourcesFromSquadShouldError: false,
 				addResourcesToPlanetCommand: gamecomm.WorldCommand{
 					PlanetId: "Planet-1",
-					Resource: string(world.Iron),
+					Resource: "iron",
 					Amount:   2,
 					Action:   gamecomm.AddResourcesToPlanet,
 				},
@@ -290,7 +289,7 @@ func TestArrivalEvent(t *testing.T) {
 			mission: Mission{
 				CorporationId: 1,
 				Squads:        []int{0},
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 				Amount:        1,
 				PlanetId:      "Planet-1",
 			},
@@ -300,13 +299,13 @@ func TestArrivalEvent(t *testing.T) {
 			wants: testResult{
 				removeAllResourcesFromSquadCommand: gamecomm.CorpCommand{
 					CorporationId: 1,
-					Resource:      string(world.Iron),
+					Resource:      "iron",
 					Action:        gamecomm.RemoveAllResourcesFromSquad,
 				},
 				removeAllResourcesFromSquadShouldError: false,
 				addResourcesToPlanetCommand: gamecomm.WorldCommand{
 					PlanetId: "Planet-1",
-					Resource: string(world.Iron),
+					Resource: "iron",
 					Amount:   1,
 					Action:   gamecomm.AddResourcesToPlanet,
 				},

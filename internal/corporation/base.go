@@ -6,7 +6,7 @@ type Base struct {
 	ID                 uint64
 	Name               string
 	Location           world.Coordinates
-	ResourceProduction map[world.Resource]int
+	ResourceProduction map[string]int
 	StorageCapacity    float64
-	StoredResources    map[world.Resource]int
+	StoredResources    map[string]int
 }

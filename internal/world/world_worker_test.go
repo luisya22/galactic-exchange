@@ -7,7 +7,6 @@ import (
 
 	"github.com/luisya22/galactic-exchange/internal/assert"
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
-	"github.com/luisya22/galactic-exchange/internal/world"
 )
 
 func TestGetPlanet(t *testing.T) {
@@ -140,7 +139,7 @@ func TestAddResourcesToPlanet(t *testing.T) {
 		{
 			name:       "Valid Amount",
 			planetName: planet1Name,
-			resource:   string(world.Iron),
+			resource:   "iron",
 			amount:     1,
 			wants: testResult{
 				response:    resourceQuantity + 1,
@@ -150,7 +149,7 @@ func TestAddResourcesToPlanet(t *testing.T) {
 		{
 			name:       "Negative Amount",
 			planetName: planet1Name,
-			resource:   string(world.Iron),
+			resource:   "iron",
 			amount:     -1,
 			wants: testResult{
 				response:    0,
@@ -160,7 +159,7 @@ func TestAddResourcesToPlanet(t *testing.T) {
 		{
 			name:       "Zero Amount",
 			planetName: planet1Name,
-			resource:   string(world.Iron),
+			resource:   "iron",
 			amount:     0,
 			wants: testResult{
 				response:    resourceQuantity,
@@ -170,7 +169,7 @@ func TestAddResourcesToPlanet(t *testing.T) {
 		{
 			name:       "Invalid Planet ID",
 			planetName: "Wrong Planet Name",
-			resource:   string(world.Iron),
+			resource:   "iron",
 			amount:     1,
 			wants: testResult{
 				response:    0,
@@ -180,7 +179,7 @@ func TestAddResourcesToPlanet(t *testing.T) {
 		{
 			name:       "Empty Planet ID",
 			planetName: "",
-			resource:   string(world.Iron),
+			resource:   "iron",
 			amount:     1,
 			wants: testResult{
 				response:    0,
@@ -227,7 +226,7 @@ func TestAddResourcesToPlanet(t *testing.T) {
 			if tt.wants.shouldError {
 				resourceAmount = 0
 			} else {
-				resourceAmount = w.Planets[tt.planetName].Resources[world.Resource(tt.resource)]
+				resourceAmount = w.Planets[tt.planetName].Resources[tt.resource]
 
 			}
 
@@ -260,7 +259,7 @@ func TestAddResourcesToPlanet(t *testing.T) {
 		expectedTotalIncrease := numGoroutines * amountPerGoroutine
 
 		w.Planets[planet1Name].RW.RLock()
-		initialResourceAmount := w.Planets[planet1Name].Resources[world.Resource(world.Iron)]
+		initialResourceAmount := w.Planets[planet1Name].Resources["iron"]
 		w.Planets[planet1Name].RW.RUnlock()
 
 		expectedFinalAmount := initialResourceAmount + expectedTotalIncrease
@@ -276,7 +275,7 @@ func TestAddResourcesToPlanet(t *testing.T) {
 					ResponseChannel: resChan,
 					Action:          gamecomm.AddResourcesToPlanet,
 					Amount:          amountPerGoroutine,
-					Resource:        string(world.Iron),
+					Resource:        "iron",
 				}
 
 				gameChannels.WorldChannel <- command
@@ -289,7 +288,7 @@ func TestAddResourcesToPlanet(t *testing.T) {
 		wg.Wait()
 
 		w.Planets[planet1Name].RW.RLock()
-		finalResourceAmount := w.Planets[planet1Name].Resources[world.Resource(world.Iron)]
+		finalResourceAmount := w.Planets[planet1Name].Resources["iron"]
 		w.Planets[planet1Name].RW.RUnlock()
 
 		assert.Equal(t, finalResourceAmount, expectedFinalAmount)
@@ -317,7 +316,7 @@ func TestRemoveResourcesToPlanet(t *testing.T) {
 		{
 			name:       "Valid Amount",
 			planetName: planet1Name,
-			resource:   string(world.Iron),
+			resource:   "iron",
 			amount:     1,
 			wants: testResult{
 				response:    resourceQuantity + 1,
@@ -327,7 +326,7 @@ func TestRemoveResourcesToPlanet(t *testing.T) {
 		{
 			name:       "Negative Amount",
 			planetName: planet1Name,
-			resource:   string(world.Iron),
+			resource:   "iron",
 			amount:     -1,
 			wants: testResult{
 				response:    0,
@@ -337,7 +336,7 @@ func TestRemoveResourcesToPlanet(t *testing.T) {
 		{
 			name:       "Zero Amount",
 			planetName: planet1Name,
-			resource:   string(world.Iron),
+			resource:   "iron",
 			amount:     0,
 			wants: testResult{
 				response:    resourceQuantity,
@@ -347,7 +346,7 @@ func TestRemoveResourcesToPlanet(t *testing.T) {
 		{
 			name:       "Invalid Planet ID",
 			planetName: "Wrong Planet Name",
-			resource:   string(world.Iron),
+			resource:   "iron",
 			amount:     1,
 			wants: testResult{
 				response:    0,
@@ -357,7 +356,7 @@ func TestRemoveResourcesToPlanet(t *testing.T) {
 		{
 			name:       "Empty Planet ID",
 			planetName: "",
-			resource:   string(world.Iron),
+			resource:   "iron",
 			amount:     1,
 			wants: testResult{
 				response:    0,
@@ -404,7 +403,7 @@ func TestRemoveResourcesToPlanet(t *testing.T) {
 			if tt.wants.shouldError {
 				resourceAmount = 0
 			} else {
-				resourceAmount = w.Planets[tt.planetName].Resources[world.Resource(tt.resource)]
+				resourceAmount = w.Planets[tt.planetName].Resources[tt.resource]
 
 			}
 
@@ -445,11 +444,11 @@ func TestRemoveResourcesToPlanet(t *testing.T) {
 					ResponseChannel: resChan,
 					Action:          gamecomm.RemoveResourcesFromPlanet,
 					Amount:          1,
-					Resource:        string(world.Iron),
+					Resource:        "iron",
 				}
 
 				w.Planets[command.PlanetId].RW.RLock()
-				resourceAmount := w.Planets[command.PlanetId].Resources[world.Resource(command.Resource)]
+				resourceAmount := w.Planets[command.PlanetId].Resources[command.Resource]
 				w.Planets[command.PlanetId].RW.RUnlock()
 
 				gameChannels.WorldChannel <- command

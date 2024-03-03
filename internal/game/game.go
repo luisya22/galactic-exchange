@@ -137,7 +137,7 @@ func (g *Game) sellResource(command []string) error {
 		return fmt.Errorf("%v needs to be an integer", command[1])
 	}
 
-	itemName := world.Resource(command[2])
+	itemName := command[2]
 	planetId := command[3]
 
 	squadId, err := strconv.Atoi(command[4])
@@ -167,7 +167,7 @@ func newPlayer() *PlayerState {
 			Name:            "Player One Base",
 			Location:        world.Coordinates{X: 0, Y: 0},
 			StorageCapacity: 50_000,
-			StoredResources: map[world.Resource]int{world.Iron: 1000},
+			StoredResources: map[string]int{"iron": 1000},
 		},
 	}
 
@@ -202,7 +202,7 @@ func newPlayer() *PlayerState {
 		{
 			Ships:       ship,
 			CrewMembers: []*corporation.CrewMember{crewMembers[0]},
-			Cargo:       make(map[world.Resource]int),
+			Cargo:       make(map[string]int),
 		},
 	}
 

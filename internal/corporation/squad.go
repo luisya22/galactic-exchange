@@ -12,7 +12,7 @@ type Squad struct {
 	Id          uint64
 	Ships       *ship.Ship
 	CrewMembers []*CrewMember
-	Cargo       map[world.Resource]int
+	Cargo       map[string]int
 	Location    world.Coordinates
 	// Officers []Officers   coming soon...
 }
@@ -48,7 +48,7 @@ func (c *Corporation) GetSquad(squadIndex int) (gamecomm.Squad, error) {
 	return squad.copy(), nil
 }
 
-func (c *Corporation) AddResourceToSquad(squadIndex int, resource world.Resource, amount int) (int, error) {
+func (c *Corporation) AddResourceToSquad(squadIndex int, resource string, amount int) (int, error) {
 	var squad *Squad
 	c.Rw.Lock()
 	defer c.Rw.Unlock()
@@ -68,7 +68,7 @@ func (c *Corporation) AddResourceToSquad(squadIndex int, resource world.Resource
 	return squad.Cargo[resource], nil
 }
 
-func (c *Corporation) RemoveResourcesFromSquad(squadIndex int, resource world.Resource, amount int) (int, error) {
+func (c *Corporation) RemoveResourcesFromSquad(squadIndex int, resource string, amount int) (int, error) {
 	var squad *Squad
 	c.Rw.Lock()
 	defer c.Rw.Unlock()
@@ -92,7 +92,7 @@ func (c *Corporation) RemoveResourcesFromSquad(squadIndex int, resource world.Re
 	return squad.Cargo[resource], nil
 }
 
-func (c *Corporation) RemoveAllResourcesFromSquad(squadIndex int, resource world.Resource) (int, error) {
+func (c *Corporation) RemoveAllResourcesFromSquad(squadIndex int, resource string) (int, error) {
 	var squad *Squad
 
 	c.Rw.Lock()

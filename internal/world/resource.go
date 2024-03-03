@@ -2,11 +2,9 @@ package world
 
 import "math/rand"
 
-type Resource string
-
 type ResourceProfile struct {
-	Primary   Resource
-	Secondary Resource
+	Primary   string
+	Secondary string
 }
 
 type Rarity int
@@ -18,19 +16,12 @@ const (
 	Rare
 )
 
-const (
-	Gold  Resource = "gold"
-	Iron  Resource = "iron"
-	Water Resource = "water"
-	Food  Resource = "food"
-)
-
 type ResourceInfo struct {
-	Name      Resource
+	Name      string
 	BasePrice float64
 }
 
-func shouldIncludeResource(world *World, res Resource, planet *Planet) bool {
+func shouldIncludeResource(world *World, res string, planet *Planet) bool {
 	rarity := world.ResourceRarity[res]
 	switch rarity {
 	case Abundant:
@@ -47,7 +38,7 @@ func shouldIncludeResource(world *World, res Resource, planet *Planet) bool {
 }
 
 func GenerateResourceProfile() ResourceProfile {
-	resources := []Resource{Gold, Iron, Water, Food}
+	resources := []string{"gold", "iron", "water", "food"}
 
 	rand.Shuffle(len(resources), func(i, j int) {
 		resources[i], resources[j] = resources[j], resources[i]
@@ -59,22 +50,22 @@ func GenerateResourceProfile() ResourceProfile {
 	}
 }
 
-func CreateWorldResources() map[Resource]ResourceInfo {
-	return map[Resource]ResourceInfo{
-		Gold: {
-			Name:      Gold,
+func CreateWorldResources() map[string]ResourceInfo {
+	return map[string]ResourceInfo{
+		"gold": {
+			Name:      "gold",
 			BasePrice: 250,
 		},
-		Iron: {
-			Name:      Iron,
+		"iron": {
+			Name:      "iron",
 			BasePrice: 200,
 		},
-		Water: {
-			Name:      Water,
+		"water": {
+			Name:      "water",
 			BasePrice: 10,
 		},
-		Food: {
-			Name:      Food,
+		"food": {
+			Name:      "food",
 			BasePrice: 10,
 		},
 	}

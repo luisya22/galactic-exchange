@@ -7,7 +7,6 @@ import (
 
 	"github.com/luisya22/galactic-exchange/internal/assert"
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
-	"github.com/luisya22/galactic-exchange/internal/world"
 )
 
 func TestGetCorporation(t *testing.T) {
@@ -261,7 +260,7 @@ func TestAddResourcesToBase(t *testing.T) {
 		{
 			name:          "Valid Resource & Valid Amount",
 			corporationId: corporationID,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			amount:        50,
 			wants: testResult{
 				response:    initialIronQuantity + 50,
@@ -271,7 +270,7 @@ func TestAddResourcesToBase(t *testing.T) {
 		{
 			name:          "Valid Resource and Negative Amount",
 			corporationId: corporationID,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			amount:        -50,
 			wants: testResult{
 				response:    0,
@@ -291,7 +290,7 @@ func TestAddResourcesToBase(t *testing.T) {
 		{
 			name:          "Valid Resource but not on map",
 			corporationId: corporationID,
-			resource:      string(world.Water),
+			resource:      "water",
 			amount:        50,
 			wants: testResult{
 				response:    50,
@@ -301,7 +300,7 @@ func TestAddResourcesToBase(t *testing.T) {
 		{
 			name:          "Invalid Corporation Id",
 			corporationId: 999,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			wants: testResult{
 				response:    0,
 				shouldError: true,
@@ -361,7 +360,7 @@ func TestAddResourcesToBase(t *testing.T) {
 		expectedTotalIncrease := numGoroutines * amountPerGoroutine
 
 		cg.RW.RLock()
-		initialResourceAmount := cg.Corporations[corporationID].Bases[0].StoredResources[world.Iron]
+		initialResourceAmount := cg.Corporations[corporationID].Bases[0].StoredResources["iron"]
 		cg.RW.RUnlock()
 
 		expectedFinalAmount := initialResourceAmount + expectedTotalIncrease
@@ -377,7 +376,7 @@ func TestAddResourcesToBase(t *testing.T) {
 					ResponseChannel: resChan,
 					Action:          gamecomm.AddResourcesToBase,
 					Amount:          amountPerGoroutine,
-					Resource:        string(world.Iron),
+					Resource:        "iron",
 				}
 
 				gameChannels.CorpChannel <- command
@@ -389,7 +388,7 @@ func TestAddResourcesToBase(t *testing.T) {
 		wg.Wait()
 
 		cg.RW.RLock()
-		finalResourceAmount := cg.Corporations[corporationID].Bases[0].StoredResources[world.Iron]
+		finalResourceAmount := cg.Corporations[corporationID].Bases[0].StoredResources["iron"]
 		cg.RW.RUnlock()
 
 		assert.Equal(t, finalResourceAmount, expectedFinalAmount)
@@ -416,7 +415,7 @@ func TestRemoveResourcesFromBase(t *testing.T) {
 		{
 			name:          "Valid Resource & Valid Amount",
 			corporationId: corporationID,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			amount:        50,
 			wants: testResult{
 				response:    initialIronQuantity - 50,
@@ -426,7 +425,7 @@ func TestRemoveResourcesFromBase(t *testing.T) {
 		{
 			name:          "Valid Resource and Negative Amount",
 			corporationId: corporationID,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			amount:        -50,
 			wants: testResult{
 				response:    0,
@@ -446,7 +445,7 @@ func TestRemoveResourcesFromBase(t *testing.T) {
 		{
 			name:          "Valid Resource but not on map",
 			corporationId: corporationID,
-			resource:      string(world.Water),
+			resource:      "water",
 			amount:        50,
 			wants: testResult{
 				response:    0,
@@ -456,7 +455,7 @@ func TestRemoveResourcesFromBase(t *testing.T) {
 		{
 			name:          "Invalid Corporation Id",
 			corporationId: 999,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			wants: testResult{
 				response:    0,
 				shouldError: true,
@@ -465,7 +464,7 @@ func TestRemoveResourcesFromBase(t *testing.T) {
 		{
 			name:          "Remove More Than Available",
 			corporationId: corporationID,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			amount:        initialIronQuantity + 1,
 			wants: testResult{
 				response:    0,
@@ -526,7 +525,7 @@ func TestRemoveResourcesFromBase(t *testing.T) {
 		expectedTotalDecrease := numGoroutines * amountPerGoroutine
 
 		cg.RW.RLock()
-		initialResourceAmount := cg.Corporations[corporationID].Bases[0].StoredResources[world.Iron]
+		initialResourceAmount := cg.Corporations[corporationID].Bases[0].StoredResources["iron"]
 		cg.RW.RUnlock()
 
 		expectedFinalAmount := initialResourceAmount - expectedTotalDecrease
@@ -542,7 +541,7 @@ func TestRemoveResourcesFromBase(t *testing.T) {
 					ResponseChannel: resChan,
 					Action:          gamecomm.RemoveResourcesFromBase,
 					Amount:          amountPerGoroutine,
-					Resource:        string(world.Iron),
+					Resource:        "iron",
 				}
 
 				gameChannels.CorpChannel <- command
@@ -554,7 +553,7 @@ func TestRemoveResourcesFromBase(t *testing.T) {
 		wg.Wait()
 
 		cg.RW.RLock()
-		finalResourceAmount := cg.Corporations[corporationID].Bases[0].StoredResources[world.Iron]
+		finalResourceAmount := cg.Corporations[corporationID].Bases[0].StoredResources["iron"]
 		cg.RW.RUnlock()
 
 		assert.Equal(t, finalResourceAmount, expectedFinalAmount)
@@ -583,7 +582,7 @@ func TestAddResourcesToSquad(t *testing.T) {
 			name:          "Valid Resource & Valid Amount",
 			corporationId: corporationID,
 			squadId:       0,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			amount:        50,
 			wants: testResult{
 				response:    initialIronQuantity + 50,
@@ -594,7 +593,7 @@ func TestAddResourcesToSquad(t *testing.T) {
 			name:          "Valid Resource and Negative Amount",
 			corporationId: corporationID,
 			squadId:       0,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			amount:        -50,
 			wants: testResult{
 				response:    0,
@@ -616,7 +615,7 @@ func TestAddResourcesToSquad(t *testing.T) {
 			name:          "Valid Resource but not on map",
 			corporationId: corporationID,
 			squadId:       0,
-			resource:      string(world.Water),
+			resource:      "water",
 			amount:        50,
 			wants: testResult{
 				response:    50,
@@ -627,7 +626,7 @@ func TestAddResourcesToSquad(t *testing.T) {
 			name:          "Invalid Squad Id",
 			corporationId: corporationID,
 			squadId:       999,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			wants: testResult{
 				response:    0,
 				shouldError: true,
@@ -637,7 +636,7 @@ func TestAddResourcesToSquad(t *testing.T) {
 			name:          "Invalid Corporation Id",
 			corporationId: 999,
 			squadId:       0,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			wants: testResult{
 				response:    0,
 				shouldError: true,
@@ -698,7 +697,7 @@ func TestAddResourcesToSquad(t *testing.T) {
 		expectedTotalDecrease := numGoroutines * amountPerGoroutine
 
 		cg.RW.RLock()
-		initialResourceAmount := cg.Corporations[corporationID].Squads[0].Cargo[world.Iron]
+		initialResourceAmount := cg.Corporations[corporationID].Squads[0].Cargo["iron"]
 		cg.RW.RUnlock()
 
 		expectedFinalAmount := initialResourceAmount - expectedTotalDecrease
@@ -715,7 +714,7 @@ func TestAddResourcesToSquad(t *testing.T) {
 					ResponseChannel: resChan,
 					Action:          gamecomm.RemoveResourcesFromSquad,
 					Amount:          amountPerGoroutine,
-					Resource:        string(world.Iron),
+					Resource:        "iron",
 				}
 
 				gameChannels.CorpChannel <- command
@@ -727,7 +726,7 @@ func TestAddResourcesToSquad(t *testing.T) {
 		wg.Wait()
 
 		cg.RW.RLock()
-		finalResourceAmount := cg.Corporations[corporationID].Squads[0].Cargo[world.Iron]
+		finalResourceAmount := cg.Corporations[corporationID].Squads[0].Cargo["iron"]
 		cg.RW.RUnlock()
 
 		assert.Equal(t, finalResourceAmount, expectedFinalAmount)
@@ -756,7 +755,7 @@ func TestRemoveResourcesFromSquad(t *testing.T) {
 			name:          "Valid Resource & Valid Amount",
 			corporationId: corporationID,
 			squadId:       0,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			amount:        50,
 			wants: testResult{
 				response:    initialIronQuantity - 50,
@@ -767,7 +766,7 @@ func TestRemoveResourcesFromSquad(t *testing.T) {
 			name:          "Valid Resource and Negative Amount",
 			corporationId: corporationID,
 			squadId:       0,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			amount:        -50,
 			wants: testResult{
 				response:    0,
@@ -789,7 +788,7 @@ func TestRemoveResourcesFromSquad(t *testing.T) {
 			name:          "Valid Resource but not on map",
 			corporationId: corporationID,
 			squadId:       0,
-			resource:      string(world.Water),
+			resource:      "water",
 			amount:        50,
 			wants: testResult{
 				response:    0,
@@ -800,7 +799,7 @@ func TestRemoveResourcesFromSquad(t *testing.T) {
 			name:          "Invalid Squad Id",
 			corporationId: corporationID,
 			squadId:       999,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			wants: testResult{
 				response:    0,
 				shouldError: true,
@@ -810,7 +809,7 @@ func TestRemoveResourcesFromSquad(t *testing.T) {
 			name:          "Invalid Corporation Id",
 			corporationId: 999,
 			squadId:       0,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			wants: testResult{
 				response:    0,
 				shouldError: true,
@@ -820,7 +819,7 @@ func TestRemoveResourcesFromSquad(t *testing.T) {
 			name:          "Remove More Than Available",
 			corporationId: corporationID,
 			squadId:       0,
-			resource:      string(world.Iron),
+			resource:      "iron",
 			amount:        initialIronQuantity + 1,
 			wants: testResult{
 				response:    0,
@@ -882,7 +881,7 @@ func TestRemoveResourcesFromSquad(t *testing.T) {
 		expectedTotalDecrease := numGoroutines * amountPerGoroutine
 
 		cg.RW.RLock()
-		initialResourceAmount := cg.Corporations[corporationID].Squads[0].Cargo[world.Iron]
+		initialResourceAmount := cg.Corporations[corporationID].Squads[0].Cargo["iron"]
 		cg.RW.RUnlock()
 
 		expectedFinalAmount := initialResourceAmount - expectedTotalDecrease
@@ -899,7 +898,7 @@ func TestRemoveResourcesFromSquad(t *testing.T) {
 					ResponseChannel: resChan,
 					Action:          gamecomm.RemoveResourcesFromSquad,
 					Amount:          amountPerGoroutine,
-					Resource:        string(world.Iron),
+					Resource:        "iron",
 				}
 
 				gameChannels.CorpChannel <- command
@@ -911,7 +910,7 @@ func TestRemoveResourcesFromSquad(t *testing.T) {
 		wg.Wait()
 
 		cg.RW.RLock()
-		finalResourceAmount := cg.Corporations[corporationID].Squads[0].Cargo[world.Iron]
+		finalResourceAmount := cg.Corporations[corporationID].Squads[0].Cargo["iron"]
 		cg.RW.RUnlock()
 
 		assert.Equal(t, finalResourceAmount, expectedFinalAmount)

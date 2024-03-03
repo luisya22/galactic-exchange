@@ -6,7 +6,6 @@ import (
 
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
 	"github.com/luisya22/galactic-exchange/internal/maputils"
-	"github.com/luisya22/galactic-exchange/internal/world"
 )
 
 type CorpGroup struct {
@@ -151,7 +150,7 @@ func (c *CorpGroup) RemoveCredits(corporationId uint64, amount float64) (float64
 	return corporation.Credits, nil
 }
 
-func (c *CorpGroup) RemoveResources(corporationId uint64, resource world.Resource, amount int) (int, error) {
+func (c *CorpGroup) RemoveResources(corporationId uint64, resource string, amount int) (int, error) {
 
 	if amount < 0 {
 		return 0, fmt.Errorf("error: amount should be greater than zero")
@@ -174,7 +173,7 @@ func (c *CorpGroup) RemoveResources(corporationId uint64, resource world.Resourc
 	return corporation.Bases[0].StoredResources[resource], nil
 }
 
-func (c *CorpGroup) AddResources(corporationId uint64, resource world.Resource, amount int) (int, error) {
+func (c *CorpGroup) AddResources(corporationId uint64, resource string, amount int) (int, error) {
 
 	if amount < 0 {
 		return 0, fmt.Errorf("error: amount should be greater than zero")

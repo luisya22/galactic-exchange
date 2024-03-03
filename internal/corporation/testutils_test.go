@@ -44,7 +44,7 @@ func createTestCorporation(t *testing.T) *corporation.Corporation {
 			Name:            baseName,
 			Location:        world.Coordinates{X: 0, Y: 0},
 			StorageCapacity: 50_000,
-			StoredResources: map[world.Resource]int{world.Iron: initialIronQuantity},
+			StoredResources: map[string]int{"iron": initialIronQuantity},
 		},
 	}
 
@@ -77,11 +77,11 @@ func createTestCorporation(t *testing.T) *corporation.Corporation {
 			Id:          testSquadId,
 			Ships:       ship,
 			CrewMembers: []*corporation.CrewMember{crewMembers[0]},
-			Cargo:       make(map[world.Resource]int),
+			Cargo:       make(map[string]int),
 		},
 	}
 
-	squads[0].Cargo[world.Iron] = initialIronQuantity
+	squads[0].Cargo["iron"] = initialIronQuantity
 
 	playerCorporation := &corporation.Corporation{
 		ID:          corporationID,

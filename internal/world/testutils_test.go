@@ -15,11 +15,11 @@ func createTestWorld(t *testing.T, gameChannels *gamecomm.GameChannels) *world.W
 	t.Helper()
 
 	randomNumber := rand.New(rand.NewSource(0))
-	resourceRarity := map[world.Resource]world.Rarity{
-		world.Gold:  world.Common,
-		world.Iron:  world.Common,
-		world.Water: world.Scarce,
-		world.Food:  world.Rare,
+	resourceRarity := map[string]world.Rarity{
+		"gold":  world.Common,
+		"iron":  world.Common,
+		"water": world.Scarce,
+		"food":  world.Rare,
 	}
 
 	allResources := world.CreateWorldResources()
@@ -54,8 +54,8 @@ func createTestZone(zoneName string, zoneLocation world.Coordinates) *world.Zone
 
 	dangerLevel := 1
 	resourcesProfile := world.ResourceProfile{
-		Primary:   world.Gold,
-		Secondary: world.Water,
+		Primary:   "gold",
+		Secondary: "water",
 	}
 
 	zone := &world.Zone{
@@ -81,12 +81,12 @@ func createTestPlanet(w *world.World, z *world.Zone, planetName string, isHabita
 		IsHarvestable: !isHabitable,
 	}
 
-	resources := make(map[world.Resource]int)
+	resources := make(map[string]int)
 
-	resources[world.Gold] = resourceQuantity
-	resources[world.Iron] = resourceQuantity
-	resources[world.Water] = resourceQuantity
-	resources[world.Food] = resourceQuantity
+	resources["gold"] = resourceQuantity
+	resources["iron"] = resourceQuantity
+	resources["water"] = resourceQuantity
+	resources["food"] = resourceQuantity
 
 	planet.Resources = resources
 

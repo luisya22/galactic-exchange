@@ -12,10 +12,10 @@ import (
 type Planet struct {
 	Name           string
 	Location       Coordinates
-	Resources      map[Resource]int
+	Resources      map[string]int
 	Population     int
 	DangerLevel    int
-	ResourceDemand map[Resource]int
+	ResourceDemand map[string]int
 	IsHabitable    bool
 	IsHarvestable  bool
 	RW             sync.RWMutex
@@ -66,7 +66,7 @@ func (w *World) GeneratePlanetsInZone(numPlanets int, zone Zone, zoneType ZoneTy
 }
 
 func GeneratePlanetResources(world *World, zone Zone, planet *Planet) {
-	resources := make(map[Resource]int, 4)
+	resources := make(map[string]int, 4)
 
 	for res := range world.AllResources {
 		if shouldIncludeResource(world, res, planet) {
@@ -119,7 +119,7 @@ func (w *World) getPlanetReference(planetId string) (*Planet, error) {
 	return planet, nil
 }
 
-func (w *World) RemoveResourcesFromPlanet(planetId string, resourceName Resource, amount int) (int, error) {
+func (w *World) RemoveResourcesFromPlanet(planetId string, resourceName string, amount int) (int, error) {
 
 	if amount < 0 {
 		return 0, fmt.Errorf("error: amount should be greater than zero")
@@ -145,7 +145,7 @@ func (w *World) RemoveResourcesFromPlanet(planetId string, resourceName Resource
 	return planet.Resources[resourceName], nil
 }
 
-func (w *World) AddResourcesToPlanet(planetId string, resourceName Resource, amount int) (int, error) {
+func (w *World) AddResourcesToPlanet(planetId string, resourceName string, amount int) (int, error) {
 
 	if amount < 0 {
 		return 0, fmt.Errorf("error: amount should be greater than zero")

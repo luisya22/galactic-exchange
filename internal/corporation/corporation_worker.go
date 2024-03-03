@@ -2,7 +2,6 @@ package corporation
 
 import (
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
-	"github.com/luisya22/galactic-exchange/internal/world"
 )
 
 func (cg *CorpGroup) Listen() {
@@ -40,7 +39,7 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 
 			command.ResponseChannel <- gamecomm.ChanResponse{Val: corp}
 		case gamecomm.AddResourcesToBase:
-			amount, err := cg.AddResources(command.CorporationId, world.Resource(command.Resource), command.Amount)
+			amount, err := cg.AddResources(command.CorporationId, command.Resource, command.Amount)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
 				continue
@@ -48,7 +47,7 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 
 			command.ResponseChannel <- gamecomm.ChanResponse{Val: amount}
 		case gamecomm.RemoveResourcesFromBase:
-			amount, err := cg.RemoveResources(command.CorporationId, world.Resource(command.Resource), command.Amount)
+			amount, err := cg.RemoveResources(command.CorporationId, command.Resource, command.Amount)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
 			}
@@ -61,7 +60,7 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 				continue
 			}
 
-			amount, err := corp.AddResourceToSquad(command.SquadIndex, world.Resource(command.Resource), command.Amount)
+			amount, err := corp.AddResourceToSquad(command.SquadIndex, command.Resource, command.Amount)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
 				continue
@@ -75,7 +74,7 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 				continue
 			}
 
-			amount, err := corp.RemoveResourcesFromSquad(command.SquadIndex, world.Resource(command.Resource), command.Amount)
+			amount, err := corp.RemoveResourcesFromSquad(command.SquadIndex, command.Resource, command.Amount)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
 				continue
@@ -89,7 +88,7 @@ func (cg *CorpGroup) worker(ch <-chan gamecomm.CorpCommand) {
 				continue
 			}
 
-			amount, err := corp.RemoveAllResourcesFromSquad(command.SquadIndex, world.Resource(command.Resource))
+			amount, err := corp.RemoveAllResourcesFromSquad(command.SquadIndex, command.Resource)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
 				continue
