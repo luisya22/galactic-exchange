@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
+	"github.com/luisya22/galactic-exchange/internal/resource"
 	"github.com/luisya22/galactic-exchange/internal/world"
 )
 
@@ -15,26 +16,19 @@ func createTestWorld(t *testing.T, gameChannels *gamecomm.GameChannels) *world.W
 	t.Helper()
 
 	randomNumber := rand.New(rand.NewSource(0))
-	resourceRarity := map[string]world.Rarity{
-		"gold":  world.Common,
-		"iron":  world.Common,
-		"water": world.Scarce,
-		"food":  world.Rare,
-	}
 
-	allResources := world.CreateWorldResources()
+	allResources := resource.CreateWorldResources()
 	allZoneTypes := world.CreateZoneTypes()
 
 	w := &world.World{
-		ResourceRarity: resourceRarity,
-		AllResources:   allResources,
-		AllZoneTypes:   allZoneTypes,
-		RandomNumber:   randomNumber,
-		Workers:        100,
-		WorldChan:      gameChannels.WorldChannel,
-		Size:           10_000,
-		Zones:          make(map[string]*world.Zone),
-		Planets:        make(map[string]*world.Planet),
+		AllResources: allResources,
+		AllZoneTypes: allZoneTypes,
+		RandomNumber: randomNumber,
+		Workers:      100,
+		WorldChan:    gameChannels.WorldChannel,
+		Size:         10_000,
+		Zones:        make(map[string]*world.Zone),
+		Planets:      make(map[string]*world.Planet),
 	}
 
 	w.LayerBoundaries = world.GenerateLayerBoundaries(w)

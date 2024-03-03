@@ -76,7 +76,7 @@ func (w *World) GenerateZones(numZones int) {
 			Name:            fmt.Sprintf("Zone-%d", i+1),
 			CentralPoint:    Coordinates{x, y},
 			DangerRange:     [2]int{dangerLevel, dangerLevel + 10},
-			ResourceProfile: GenerateResourceProfile(),
+			ResourceProfile: GenerateResourceProfile(w.AllResources),
 			ZoneType:        LayerName(currentZone.Name),
 		}
 

@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
+	"github.com/luisya22/galactic-exchange/internal/resource"
 )
 
 type World struct {
 	Planets         map[string]*Planet
 	Zones           map[string]*Zone
-	ResourceRarity  map[string]Rarity
-	AllResources    map[string]ResourceInfo
+	AllResources    map[string]resource.Resource
 	AllZoneTypes    map[LayerName]ZoneType
 	LayerBoundaries []float64
 	RandomNumber    *rand.Rand
@@ -23,27 +23,18 @@ type World struct {
 	Size            float64
 }
 
-func New(gameChannels *gamecomm.GameChannels) *World {
+func New(gameChannels *gamecomm.GameChannels, resources map[string]resource.Resource) *World {
 
 	randomnumber := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	resourceRarity := map[string]Rarity{
-		"gold":  Common,
-		"iron":  Common,
-		"Water": Scarce,
-		"Food":  Rare,
-	}
-
-	allResources := CreateWorldResources()
 	allZoneTypes := CreateZoneTypes()
 	world := &World{
-		ResourceRarity: resourceRarity,
-		AllResources:   allResources,
-		AllZoneTypes:   allZoneTypes,
-		RandomNumber:   randomnumber,
-		Workers:        100,
-		WorldChan:      gameChannels.WorldChannel,
-		Size:           10_000,
+		AllResources: resources,
+		AllZoneTypes: allZoneTypes,
+		RandomNumber: randomnumber,
+		Workers:      100,
+		WorldChan:    gameChannels.WorldChannel,
+		Size:         10_000,
 	}
 
 	world.Zones = make(map[string]*Zone, 1000)

@@ -68,13 +68,13 @@ func (w *World) GeneratePlanetsInZone(numPlanets int, zone Zone, zoneType ZoneTy
 func GeneratePlanetResources(world *World, zone Zone, planet *Planet) {
 	resources := make(map[string]int, 4)
 
-	for res := range world.AllResources {
+	for name, res := range world.AllResources {
 		if shouldIncludeResource(world, res, planet) {
-			resources[res] = rand.Intn(1_000_000)
+			resources[name] = rand.Intn(1_000_000)
 			continue
 		}
 
-		resources[res] = 0
+		resources[name] = 0
 	}
 
 	resources[zone.ResourceProfile.Primary] = resources[zone.ResourceProfile.Primary]*world.RandomNumber.Intn(5) + 1

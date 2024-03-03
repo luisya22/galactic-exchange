@@ -12,6 +12,7 @@ import (
 	"github.com/luisya22/galactic-exchange/internal/gameclock"
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
 	"github.com/luisya22/galactic-exchange/internal/mission"
+	"github.com/luisya22/galactic-exchange/internal/resource"
 	"github.com/luisya22/galactic-exchange/internal/ship"
 	"github.com/luisya22/galactic-exchange/internal/world"
 )
@@ -24,6 +25,7 @@ type Game struct {
 	MissionScheduler *mission.MissionScheduler
 	gameChannels     *gamecomm.GameChannels
 	gameClock        *gameclock.GameClock
+	Resources        map[string]resource.Resource
 }
 
 /*
@@ -57,9 +59,11 @@ func New() *Game {
 		MissionChannel: make(chan gamecomm.MissionCommand, 100),
 	}
 
+	resources := resource.CreateWorldResources()
+
 	gc := gameclock.NewGameClock(0, 1)
 
-	w := world.New(gameChannels)
+	w := world.New(gameChannels, resources)
 
 	playerState := newPlayer()
 	corporations := corporation.NewCorpGroup(gameChannels)
@@ -75,6 +79,7 @@ func New() *Game {
 		MissionScheduler: missionScheduler,
 		gameChannels:     gameChannels,
 		gameClock:        gc,
+		Resources:        resource.CreateWorldResources(),
 	}
 }
 
