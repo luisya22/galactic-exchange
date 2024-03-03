@@ -17,7 +17,7 @@ func createTestWorld(t *testing.T, gameChannels *gamecomm.GameChannels) *world.W
 
 	randomNumber := rand.New(rand.NewSource(0))
 
-	allResources := resource.CreateWorldResources()
+	allResources := resource.LoadWorldResources()
 	allZoneTypes := world.CreateZoneTypes()
 
 	w := &world.World{

@@ -32,7 +32,6 @@ func shouldIncludeResource(world *World, res resource.Resource, planet *Planet) 
 	}
 }
 
-// TODO: pass all the resources
 func GenerateResourceProfile(worldResources map[string]resource.Resource) ResourceProfile {
 
 	// TODO: improve this later to not use []string but map[string]Resource

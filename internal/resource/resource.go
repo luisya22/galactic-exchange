@@ -1,9 +1,16 @@
 package resource
 
+import (
+	"encoding/json"
+	"log"
+
+	"github.com/luisya22/galactic-exchange/internal/gamedata"
+)
+
 type Resource struct {
-	Name      string
-	BasePrice float64
-	Rarity    Rarity
+	Name      string  `json:"name"`
+	BasePrice float64 `json:"basePrice"`
+	Rarity    Rarity  `json:"rarity"`
 }
 
 type Rarity int
@@ -15,27 +22,20 @@ const (
 	Rare
 )
 
-func CreateWorldResources() map[string]Resource {
-	return map[string]Resource{
-		"gold": {
-			Name:      "gold",
-			BasePrice: 250,
-			Rarity:    Common,
-		},
-		"iron": {
-			Name:      "iron",
-			BasePrice: 200,
-			Rarity:    Common,
-		},
-		"water": {
-			Name:      "water",
-			BasePrice: 10,
-			Rarity:    Scarce,
-		},
-		"food": {
-			Name:      "food",
-			BasePrice: 10,
-			Rarity:    Rare,
-		},
+func LoadWorldResources() map[string]Resource {
+
+	resources := make(map[string]Resource, 4)
+
+	file, err := gamedata.Files.Open("resourcedata/resources.json")
+	if err != nil {
+		log.Fatal(err.Error())
 	}
+	defer file.Close()
+
+	err = json.NewDecoder(file).Decode(&resources)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	return resources
 }

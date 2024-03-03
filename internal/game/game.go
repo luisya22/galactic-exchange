@@ -59,7 +59,7 @@ func New() *Game {
 		MissionChannel: make(chan gamecomm.MissionCommand, 100),
 	}
 
-	resources := resource.CreateWorldResources()
+	resources := resource.LoadWorldResources()
 
 	gc := gameclock.NewGameClock(0, 1)
 
@@ -79,7 +79,7 @@ func New() *Game {
 		MissionScheduler: missionScheduler,
 		gameChannels:     gameChannels,
 		gameClock:        gc,
-		Resources:        resource.CreateWorldResources(),
+		Resources:        resource.LoadWorldResources(),
 	}
 }
 

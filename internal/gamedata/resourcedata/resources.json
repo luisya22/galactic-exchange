@@ -1,0 +1,22 @@
+{
+    "gold": {
+        "name": "gold",
+        "basePrice": 250,
+        "rarity": 1
+    },
+    "iron": {
+        "name": "iron",
+        "basePrice": 200,
+        "rarity": 1
+    },
+    "water": {
+        "name": "water",
+        "basePrice": 10,
+        "rarity": 0
+    },
+    "food": {
+        "name": "food",
+        "basePrice": 10,
+        "rarity": 0
+    }
+}
