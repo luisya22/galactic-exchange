@@ -1,5 +1,7 @@
 package gamecomm
 
+//lint:file-ignore U1000
+
 import (
 	"math"
 )
