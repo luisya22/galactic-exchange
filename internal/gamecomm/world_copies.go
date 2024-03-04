@@ -1,7 +1,5 @@
 package gamecomm
 
-//lint:ignore U1000 Ignore all unused code
-
 import (
 	"math"
 )
@@ -17,6 +15,7 @@ type Planet struct {
 	IsHarvestable  bool
 }
 
+//lint:ignore U1000 weirdbug
 type Coordinates struct {
 	X float64
 	Y float64
