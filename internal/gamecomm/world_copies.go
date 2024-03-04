@@ -15,8 +15,8 @@ type Planet struct {
 	IsHarvestable  bool
 }
 
-//lint:ignore U1000 weirdbug
 type Coordinates struct {
+	//lint:ignore U1000 weirdbug
 	X float64
 	Y float64
 }
