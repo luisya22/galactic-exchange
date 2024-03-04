@@ -16,9 +16,7 @@ type Planet struct {
 }
 
 type Coordinates struct {
-	//lint:ignore U1000 reason: Fields are used in calculations, false positive by staticcheck
 	X float64
-	//lint:ignore U1000 reason: Fields are used in calculations, false positive by staticcheck
 	Y float64
 }
 
