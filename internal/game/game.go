@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/luisya22/galactic-exchange/internal/corporation"
+	"github.com/luisya22/galactic-exchange/internal/economy"
 	"github.com/luisya22/galactic-exchange/internal/gameclock"
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
 	"github.com/luisya22/galactic-exchange/internal/mission"
@@ -26,6 +27,7 @@ type Game struct {
 	gameChannels     *gamecomm.GameChannels
 	gameClock        *gameclock.GameClock
 	Resources        map[string]resource.Resource
+	Economy          *economy.Economy
 }
 
 /*
@@ -67,6 +69,7 @@ func New() *Game {
 
 	playerState := newPlayer()
 	corporations := corporation.NewCorpGroup(gameChannels)
+	gameEconomy := economy.NewEconomy(*gameChannels, resources, w.GetZoneIds(), gc)
 
 	corporations.Corporations[1] = playerState.Corporation
 
@@ -80,6 +83,7 @@ func New() *Game {
 		gameChannels:     gameChannels,
 		gameClock:        gc,
 		Resources:        resource.LoadWorldResources(),
+		Economy:          gameEconomy,
 	}
 }
 
@@ -92,6 +96,7 @@ func Start() error {
 	go game.Corporations.Run()
 	go game.PlayerState.listenNotifications()
 	go game.gameClock.StartTime()
+	go game.Economy.Listen()
 
 	printTestLog(game)
 

@@ -47,10 +47,22 @@ func (w *World) worker(ch <-chan gamecomm.WorldCommand) {
 				Val: amount,
 				Err: err,
 			}
+		case gamecomm.GetZone:
+			zone, err := w.GetZone(command.ZoneId)
+			if err != nil {
+				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
+			}
+
+			command.ResponseChannel <- gamecomm.ChanResponse{
+				Val: zone,
+				Err: nil,
+			}
 
 		default:
 			command.ResponseChannel <- gamecomm.ChanResponse{Err: fmt.Errorf("error: wrong action")}
 
 		}
+
+		close(command.ResponseChannel)
 	}
 }

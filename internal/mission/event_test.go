@@ -128,7 +128,10 @@ func TestSchedule(t *testing.T) {
 			}
 
 			for _, e := range tt.events {
-				eventScheduler.Schedule(e)
+				_, err := eventScheduler.Schedule(e)
+				if err != nil {
+					t.Fatal(err)
+				}
 			}
 
 			// validate events are on map
@@ -178,7 +181,10 @@ func TestSchedule(t *testing.T) {
 			go func(e *Event, eventScheduler *DefaultEventScheduler) {
 				defer wg.Done()
 
-				eventScheduler.Schedule(e)
+				_, err := eventScheduler.Schedule(e)
+				if err != nil {
+					t.Errorf(err.Error())
+				}
 
 			}(event, eventScheduler)
 		}
@@ -331,7 +337,10 @@ func TestRun(t *testing.T) {
 			}
 
 			for _, e := range tt.events {
-				eventScheduler.Schedule(e)
+				_, err := eventScheduler.Schedule(e)
+				if err != nil {
+					t.Fatal(err)
+				}
 			}
 
 			go eventScheduler.gameClock.StartTime()
@@ -401,8 +410,14 @@ func TestRun(t *testing.T) {
 			return nil
 		}
 
-		eventScheduler.Schedule(event1)
-		eventScheduler.Schedule(event2)
+		_, err := eventScheduler.Schedule(event1)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = eventScheduler.Schedule(event2)
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		go eventScheduler.gameClock.StartTime()
 		go eventScheduler.Run()
@@ -456,7 +471,10 @@ func BenchmarkRun(b *testing.B) {
 			go func(e *Event, eventScheduler *DefaultEventScheduler) {
 				defer wg.Done()
 
-				eventScheduler.Schedule(e)
+				_, err := eventScheduler.Schedule(e)
+				if err != nil {
+					b.Error(err)
+				}
 
 			}(event, eventScheduler)
 		}

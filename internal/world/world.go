@@ -130,3 +130,12 @@ func (w *World) GetZoneByIndex(index int) (*ZoneType, error) {
 
 	return nil, fmt.Errorf("error: zone not found with inde %v", index)
 }
+
+func (w *World) GetZoneIds() []string {
+	ids := []string{}
+	for _, zone := range w.Zones {
+		ids = append(ids, zone.Name)
+	}
+
+	return ids
+}
