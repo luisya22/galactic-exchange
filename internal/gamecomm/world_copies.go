@@ -16,8 +16,7 @@ type Planet struct {
 }
 
 type Coordinates struct {
-	//lint:ignore U1000 weirdbug
-	X float64
+	X float64 //lint:ignore U1000 weirdbug
 	Y float64
 }
 
