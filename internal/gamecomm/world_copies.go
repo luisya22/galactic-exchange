@@ -1,6 +1,6 @@
 package gamecomm
 
-//lint:file-ignore U1000 Ignore all unused code
+//lint:ignore U1000 Ignore all unused code
 
 import (
 	"math"
