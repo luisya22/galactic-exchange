@@ -5,6 +5,7 @@ import (
 
 	"github.com/luisya22/galactic-exchange/internal/gameclock"
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
+	"github.com/luisya22/galactic-exchange/internal/resource"
 )
 
 // Communicate with World to check planet demands
@@ -18,119 +19,92 @@ type Economy struct {
 	zoneTransactions               map[string][]int
 	planetTransactions             map[string][]int
 	corporationPlanetTradeRelation map[uint64]int
-	contracts                      []contract
 	corporationContracts           map[uint64][]int
 	gameChannels                   gamecomm.GameChannels
 	Workers                        int
-	rw                             sync.Mutex
+	rw                             sync.RWMutex
+	limit                          int
+	MarketListings                 map[string][]MarketListing
+	zoneMarketListingCounter       map[string]int
+	zoneMutexes                    map[string]*sync.RWMutex
+	resources                      map[string]resource.Resource
+	gameClock                      *gameclock.GameClock
 }
 
-type transaction struct {
-	planetId      string
-	corporationId uint64
-	resource      string
-	credits       float64
-	time          gameclock.GameTimeDuration
-}
+// type contract struct {
+// 	corporationId uint64
+// 	planetId      string
+// 	resource      string
+// 	price         float64
+// 	interval      gameclock.GameTimeDuration
+// 	endTime       gameclock.GameTime
+// }
 
-type contract struct {
-	corporationId uint64
-	planetId      string
-	resource      string
-	price         float64
-	interval      gameclock.GameTimeDuration
-	endTime       gameclock.GameTimeDuration
-}
+func NewEconomy(gameChannels gamecomm.GameChannels, resources map[string]resource.Resource, zoneIds []string, gc *gameclock.GameClock) *Economy {
 
-type itemAndPrice struct {
-	resource string
-	price    int
-}
+	sellOffers := make(map[string][]MarketListing, len(zoneIds))
+	zoneSellOfferCounter := make(map[string]int, len(zoneIds))
+	zoneMutexes := make(map[string]*sync.RWMutex, len(zoneIds))
 
-func NewEconomy(gameChannels gamecomm.GameChannels) *Economy {
+	for _, zoneId := range zoneIds {
+		sellOffers[zoneId] = []MarketListing{}
+		zoneSellOfferCounter[zoneId] = 0
+		zoneMutexes[zoneId] = new(sync.RWMutex)
+	}
+
 	return &Economy{
 		transactions:                   []transaction{},
 		zoneTransactions:               make(map[string][]int),
 		corporationPlanetTradeRelation: make(map[uint64]int),
-		contracts:                      []contract{},
 		corporationContracts:           make(map[uint64][]int),
 		gameChannels:                   gameChannels,
+		MarketListings:                 sellOffers,
+		zoneMarketListingCounter:       zoneSellOfferCounter,
+		zoneMutexes:                    zoneMutexes,
+		resources:                      resources,
+		gameClock:                      gc,
 	}
 }
 
-// Decide wether a Planet accepts or decline a trade
-func (e *Economy) acceptTrade(planetId string, corporationId uint64, itemPrices []itemAndPrice) bool {
-	return true
-}
-
-// Save Transactions per zone and globally
-func (e *Economy) addTransaction(zoneId string, planetId string, corporationId uint64, resource string, credits float64, t gameclock.GameTimeDuration) error {
-	e.rw.Lock()
-	defer e.rw.Unlock()
-
-	tran := transaction{
-		planetId:      planetId,
-		corporationId: corporationId,
-		resource:      resource,
-		credits:       credits,
-		time:          t,
-	}
-
-	index := len(e.transactions)
-
-	// Transaction
-	e.transactions = append(e.transactions, tran)
-
-	// Zone Transaction
-	_, ok := e.zoneTransactions[zoneId]
-	if !ok {
-		e.zoneTransactions[zoneId] = []int{}
-	}
-
-	e.zoneTransactions[zoneId] = append(e.zoneTransactions[zoneId], index)
-
-	// Planet Transaction
-	_, ok = e.planetTransactions[planetId]
-	if !ok {
-		e.planetTransactions[planetId] = []int{}
-	}
-
-	e.planetTransactions[planetId] = append(e.planetTransactions[planetId], index)
-
-	// TODO: Save Corporation-Planet Trade Relations level
-
-	return nil
+func (e *Economy) Run() {
+	e.Listen()
 }
 
 // Save contracts and existing trades between Corporation and Planets
-func (e *Economy) addContract(corporationId uint64, planetId string, resource string, price float64, interval gameclock.GameTimeDuration, endTime gameclock.GameTimeDuration) error {
-	e.rw.Lock()
-	defer e.rw.Unlock()
-
-	c := contract{
-		corporationId: corporationId,
-		planetId:      planetId,
-		resource:      resource,
-		price:         price,
-		interval:      interval,
-		endTime:       endTime,
-	}
-
-	index := len(e.contracts)
-	e.contracts = append(e.contracts, c)
-
-	_, ok := e.corporationContracts[corporationId]
-	if !ok {
-		e.corporationContracts[corporationId] = []int{}
-	}
-
-	e.corporationContracts[corporationId] = append(e.corporationContracts[corporationId], index)
-
-	return nil
-}
+// func (e *Economy) addContract(corporationId uint64, planetId string, resource string, price float64, interval gameclock.GameTimeDuration, endTime gameclock.GameTime) error {
+// 	e.rw.Lock()
+// 	defer e.rw.Unlock()
+//
+// 	c := contract{
+// 		corporationId: corporationId,
+// 		planetId:      planetId,
+// 		resource:      resource,
+// 		price:         price,
+// 		interval:      interval,
+// 		endTime:       endTime,
+// 	}
+//
+// 	fmt.Println(c.corporationId, c.planetId, c.resource, c.price, c.interval, c.endTime)
+//
+// 	index := len(e.contracts)
+// 	e.contracts = append(e.contracts, c)
+//
+// 	_, ok := e.corporationContracts[corporationId]
+// 	if !ok {
+// 		e.corporationContracts[corporationId] = []int{}
+// 	}
+//
+// 	e.corporationContracts[corporationId] = append(e.corporationContracts[corporationId], index)
+//
+// 	return nil
+// }
 
 // TODO: acceptContract
 
 // TODO: Calculate Resource Prices Projections
 // func (e *Economy) calculateProjections(){
 // }
+
+// TODO: Per zone marketplace
+// TODO: Player and NPCs would set prices and planets would buy
+// TODO: Planets would analyze and score every offer available and buy

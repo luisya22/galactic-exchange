@@ -26,3 +26,19 @@ func Distance(p1, p2 Coordinates) float64 {
 
 	return math.Sqrt(dx + dy)
 }
+
+type Zone struct {
+	Name         string
+	CentralPoint Coordinates
+	DangerRange  [2]int
+	ZoneType     LayerName
+}
+
+type LayerName string
+
+const (
+	SectorOne   LayerName = "Sector One"
+	SectorTwo   LayerName = "Sector Two"
+	SectorThree LayerName = "Sector Three"
+	SectorFour  LayerName = "Sector Four"
+)

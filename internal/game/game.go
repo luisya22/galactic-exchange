@@ -9,9 +9,11 @@ import (
 	"strings"
 
 	"github.com/luisya22/galactic-exchange/internal/corporation"
+	"github.com/luisya22/galactic-exchange/internal/economy"
 	"github.com/luisya22/galactic-exchange/internal/gameclock"
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
 	"github.com/luisya22/galactic-exchange/internal/mission"
+	"github.com/luisya22/galactic-exchange/internal/resource"
 	"github.com/luisya22/galactic-exchange/internal/ship"
 	"github.com/luisya22/galactic-exchange/internal/world"
 )
@@ -24,6 +26,8 @@ type Game struct {
 	MissionScheduler *mission.MissionScheduler
 	gameChannels     *gamecomm.GameChannels
 	gameClock        *gameclock.GameClock
+	Resources        map[string]resource.Resource
+	Economy          *economy.Economy
 }
 
 /*
@@ -57,12 +61,15 @@ func New() *Game {
 		MissionChannel: make(chan gamecomm.MissionCommand, 100),
 	}
 
+	resources := resource.LoadWorldResources()
+
 	gc := gameclock.NewGameClock(0, 1)
 
-	w := world.New(gameChannels)
+	w := world.New(gameChannels, resources)
 
 	playerState := newPlayer()
 	corporations := corporation.NewCorpGroup(gameChannels)
+	gameEconomy := economy.NewEconomy(*gameChannels, resources, w.GetZoneIds(), gc)
 
 	corporations.Corporations[1] = playerState.Corporation
 
@@ -75,6 +82,8 @@ func New() *Game {
 		MissionScheduler: missionScheduler,
 		gameChannels:     gameChannels,
 		gameClock:        gc,
+		Resources:        resource.LoadWorldResources(),
+		Economy:          gameEconomy,
 	}
 }
 
@@ -87,6 +96,7 @@ func Start() error {
 	go game.Corporations.Run()
 	go game.PlayerState.listenNotifications()
 	go game.gameClock.StartTime()
+	go game.Economy.Listen()
 
 	printTestLog(game)
 
@@ -137,7 +147,7 @@ func (g *Game) sellResource(command []string) error {
 		return fmt.Errorf("%v needs to be an integer", command[1])
 	}
 
-	itemName := world.Resource(command[2])
+	itemName := command[2]
 	planetId := command[3]
 
 	squadId, err := strconv.Atoi(command[4])
@@ -167,7 +177,7 @@ func newPlayer() *PlayerState {
 			Name:            "Player One Base",
 			Location:        world.Coordinates{X: 0, Y: 0},
 			StorageCapacity: 50_000,
-			StoredResources: map[world.Resource]int{world.Iron: 1000},
+			StoredResources: map[string]int{"iron": 1000},
 		},
 	}
 
@@ -202,7 +212,7 @@ func newPlayer() *PlayerState {
 		{
 			Ships:       ship,
 			CrewMembers: []*corporation.CrewMember{crewMembers[0]},
-			Cargo:       make(map[world.Resource]int),
+			Cargo:       make(map[string]int),
 		},
 	}
 

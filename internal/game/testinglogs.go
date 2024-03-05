@@ -17,7 +17,7 @@ func printTestLog(g *Game) {
 		break
 	}
 
-	fmt.Printf("%v\n", g.PlayerState.Corporation.Bases[0].StoredResources[world.Iron])
+	fmt.Printf("%v\n", g.PlayerState.Corporation.Bases[0].StoredResources["iron"])
 	fmt.Println(g.PlayerState.Corporation.Squads[0])
 
 	for _, i := range g.World.AllResources {

@@ -21,10 +21,12 @@ type GameChannels struct {
 	WorldChannel   chan WorldCommand
 	CorpChannel    chan CorpCommand
 	MissionChannel chan MissionCommand
+	EconomyChannel chan EconomyCommand
 }
 
 // World Channels
 type WorldCommand struct {
+	ZoneId          string
 	PlanetId        string
 	Action          WorldCommandType
 	Amount          int
@@ -38,6 +40,7 @@ const (
 	GetPlanet WorldCommandType = iota
 	AddResourcesToPlanet
 	RemoveResourcesFromPlanet
+	GetZone
 )
 
 // Corporation Channels

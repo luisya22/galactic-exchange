@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
+	"github.com/luisya22/galactic-exchange/internal/resource"
 	"github.com/luisya22/galactic-exchange/internal/world"
 )
 
@@ -15,26 +16,19 @@ func createTestWorld(t *testing.T, gameChannels *gamecomm.GameChannels) *world.W
 	t.Helper()
 
 	randomNumber := rand.New(rand.NewSource(0))
-	resourceRarity := map[world.Resource]world.Rarity{
-		world.Gold:  world.Common,
-		world.Iron:  world.Common,
-		world.Water: world.Scarce,
-		world.Food:  world.Rare,
-	}
 
-	allResources := world.CreateWorldResources()
+	allResources := resource.LoadWorldResources()
 	allZoneTypes := world.CreateZoneTypes()
 
 	w := &world.World{
-		ResourceRarity: resourceRarity,
-		AllResources:   allResources,
-		AllZoneTypes:   allZoneTypes,
-		RandomNumber:   randomNumber,
-		Workers:        100,
-		WorldChan:      gameChannels.WorldChannel,
-		Size:           10_000,
-		Zones:          make(map[string]*world.Zone),
-		Planets:        make(map[string]*world.Planet),
+		AllResources: allResources,
+		AllZoneTypes: allZoneTypes,
+		RandomNumber: randomNumber,
+		Workers:      100,
+		WorldChan:    gameChannels.WorldChannel,
+		Size:         10_000,
+		Zones:        make(map[string]*world.Zone),
+		Planets:      make(map[string]*world.Planet),
 	}
 
 	w.LayerBoundaries = world.GenerateLayerBoundaries(w)
@@ -54,8 +48,8 @@ func createTestZone(zoneName string, zoneLocation world.Coordinates) *world.Zone
 
 	dangerLevel := 1
 	resourcesProfile := world.ResourceProfile{
-		Primary:   world.Gold,
-		Secondary: world.Water,
+		Primary:   "gold",
+		Secondary: "water",
 	}
 
 	zone := &world.Zone{
@@ -81,12 +75,12 @@ func createTestPlanet(w *world.World, z *world.Zone, planetName string, isHabita
 		IsHarvestable: !isHabitable,
 	}
 
-	resources := make(map[world.Resource]int)
+	resources := make(map[string]int)
 
-	resources[world.Gold] = resourceQuantity
-	resources[world.Iron] = resourceQuantity
-	resources[world.Water] = resourceQuantity
-	resources[world.Food] = resourceQuantity
+	resources["gold"] = resourceQuantity
+	resources["iron"] = resourceQuantity
+	resources["water"] = resourceQuantity
+	resources["food"] = resourceQuantity
 
 	planet.Resources = resources
 

@@ -3,6 +3,8 @@ package world
 import (
 	"fmt"
 	"math"
+
+	"github.com/luisya22/galactic-exchange/internal/gamecomm"
 )
 
 type ZoneType struct {
@@ -76,7 +78,7 @@ func (w *World) GenerateZones(numZones int) {
 			Name:            fmt.Sprintf("Zone-%d", i+1),
 			CentralPoint:    Coordinates{x, y},
 			DangerRange:     [2]int{dangerLevel, dangerLevel + 10},
-			ResourceProfile: GenerateResourceProfile(),
+			ResourceProfile: GenerateResourceProfile(w.AllResources),
 			ZoneType:        LayerName(currentZone.Name),
 		}
 
@@ -86,4 +88,25 @@ func (w *World) GenerateZones(numZones int) {
 
 		w.Zones[zone.Name] = &zone
 	}
+}
+
+func (w *World) GetZone(zoneId string) (gamecomm.Zone, error) {
+	var zone *Zone
+	var ok bool
+
+	w.RW.RLock()
+	if zone, ok = w.Zones[zoneId]; !ok {
+		return gamecomm.Zone{}, fmt.Errorf("Zone not found: %v", zoneId)
+	}
+
+	defer w.RW.RUnlock()
+
+	z := gamecomm.Zone{
+		Name:         zone.Name,
+		CentralPoint: gamecomm.Coordinates(zone.CentralPoint),
+		DangerRange:  zone.DangerRange,
+		ZoneType:     gamecomm.LayerName(zone.ZoneType),
+	}
+
+	return z, nil
 }

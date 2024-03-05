@@ -9,7 +9,6 @@ import (
 	"github.com/luisya22/galactic-exchange/internal/gameclock"
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
 	"github.com/luisya22/galactic-exchange/internal/mission"
-	"github.com/luisya22/galactic-exchange/internal/world"
 )
 
 func TestStartSquadMission(t *testing.T) {
@@ -53,7 +52,7 @@ func TestStartSquadMission(t *testing.T) {
 				PlanetId:      "Planet1",
 				Status:        "In Progress",
 				Type:          gamecomm.SquadMission,
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			worldErrors: worldErrors{
 				getPlanetError: testError{
@@ -85,7 +84,7 @@ func TestStartSquadMission(t *testing.T) {
 				PlanetId:      "Planet1",
 				Status:        "In Progress",
 				Type:          gamecomm.SquadMission,
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			worldErrors: worldErrors{
 				getPlanetError: testError{
@@ -117,7 +116,7 @@ func TestStartSquadMission(t *testing.T) {
 				PlanetId:      "Planet1",
 				Status:        "In Progress",
 				Type:          gamecomm.SquadMission,
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			worldErrors: worldErrors{
 				getPlanetError: testError{
@@ -150,7 +149,7 @@ func TestStartSquadMission(t *testing.T) {
 				PlanetId:      "Planet1",
 				Status:        "In Progress",
 				Type:          gamecomm.SquadMission,
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			worldErrors: worldErrors{
 				getPlanetError: testError{
@@ -182,7 +181,7 @@ func TestStartSquadMission(t *testing.T) {
 				PlanetId:      "Planet1",
 				Status:        "In Progress",
 				Type:          gamecomm.SquadMission,
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			worldErrors: worldErrors{
 				getPlanetError: testError{
@@ -213,7 +212,7 @@ func TestStartSquadMission(t *testing.T) {
 				PlanetId:      "InvalidPlanet",
 				Status:        "In Progress",
 				Type:          gamecomm.SquadMission,
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			worldErrors: worldErrors{
 				getPlanetError: testError{
@@ -276,7 +275,7 @@ func TestStartSquadMission(t *testing.T) {
 				PlanetId:      "Planet1",
 				Status:        "In Progress",
 				Type:          gamecomm.SquadMission,
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			worldErrors: worldErrors{
 				getPlanetError: testError{
@@ -430,7 +429,7 @@ func TestStartTransferMission(t *testing.T) {
 				PlanetId:      "Planet1",
 				Status:        "In Progress",
 				Type:          gamecomm.TransferMission,
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			worldErrors: worldErrors{
 				getPlanetError: testError{
@@ -462,7 +461,7 @@ func TestStartTransferMission(t *testing.T) {
 				PlanetId:      "Planet1",
 				Status:        "In Progress",
 				Type:          gamecomm.TransferMission,
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			worldErrors: worldErrors{
 				getPlanetError: testError{
@@ -494,7 +493,7 @@ func TestStartTransferMission(t *testing.T) {
 				PlanetId:      "Planet1",
 				Status:        "In Progress",
 				Type:          gamecomm.TransferMission,
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			worldErrors: worldErrors{
 				getPlanetError: testError{
@@ -527,7 +526,7 @@ func TestStartTransferMission(t *testing.T) {
 				PlanetId:      "Planet1",
 				Status:        "In Progress",
 				Type:          gamecomm.TransferMission,
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			worldErrors: worldErrors{
 				getPlanetError: testError{
@@ -559,7 +558,7 @@ func TestStartTransferMission(t *testing.T) {
 				PlanetId:      "Planet1",
 				Status:        "In Progress",
 				Type:          gamecomm.TransferMission,
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			worldErrors: worldErrors{
 				getPlanetError: testError{
@@ -590,7 +589,7 @@ func TestStartTransferMission(t *testing.T) {
 				PlanetId:      "InvalidPlanet",
 				Status:        "In Progress",
 				Type:          gamecomm.TransferMission,
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			worldErrors: worldErrors{
 				getPlanetError: testError{
@@ -653,7 +652,7 @@ func TestStartTransferMission(t *testing.T) {
 				PlanetId:      "Planet1",
 				Status:        "In Progress",
 				Type:          gamecomm.TransferMission,
-				Resources:     []string{string(world.Iron)},
+				Resources:     []string{"iron"},
 			},
 			worldErrors: worldErrors{
 				getPlanetError: testError{

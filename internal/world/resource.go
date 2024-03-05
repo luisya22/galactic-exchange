@@ -1,53 +1,44 @@
 package world
 
-import "math/rand"
+import (
+	"math/rand"
 
-type Resource string
+	"github.com/luisya22/galactic-exchange/internal/resource"
+)
 
 type ResourceProfile struct {
-	Primary   Resource
-	Secondary Resource
+	Primary   string
+	Secondary string
 }
 
-type Rarity int
-
-const (
-	Abundant Rarity = iota
-	Common
-	Scarce
-	Rare
-)
-
-const (
-	Gold  Resource = "gold"
-	Iron  Resource = "iron"
-	Water Resource = "water"
-	Food  Resource = "food"
-)
-
 type ResourceInfo struct {
-	Name      Resource
+	Name      string
 	BasePrice float64
 }
 
-func shouldIncludeResource(world *World, res Resource, planet *Planet) bool {
-	rarity := world.ResourceRarity[res]
-	switch rarity {
-	case Abundant:
+func shouldIncludeResource(world *World, res resource.Resource, planet *Planet) bool {
+
+	switch res.Rarity {
+	case resource.Abundant:
 		return true
-	case Common:
+	case resource.Common:
 		return planet.DangerLevel >= 20
-	case Scarce:
+	case resource.Scarce:
 		return planet.DangerLevel >= 40
-	case Rare:
+	case resource.Rare:
 		return planet.DangerLevel >= 70
 	default:
 		return false
 	}
 }
 
-func GenerateResourceProfile() ResourceProfile {
-	resources := []Resource{Gold, Iron, Water, Food}
+func GenerateResourceProfile(worldResources map[string]resource.Resource) ResourceProfile {
+
+	// TODO: improve this later to not use []string but map[string]Resource
+	resources := []string{}
+	for _, r := range worldResources {
+		resources = append(resources, r.Name)
+	}
 
 	rand.Shuffle(len(resources), func(i, j int) {
 		resources[i], resources[j] = resources[j], resources[i]
@@ -56,26 +47,5 @@ func GenerateResourceProfile() ResourceProfile {
 	return ResourceProfile{
 		Primary:   resources[0],
 		Secondary: resources[1],
-	}
-}
-
-func CreateWorldResources() map[Resource]ResourceInfo {
-	return map[Resource]ResourceInfo{
-		Gold: {
-			Name:      Gold,
-			BasePrice: 250,
-		},
-		Iron: {
-			Name:      Iron,
-			BasePrice: 200,
-		},
-		Water: {
-			Name:      Water,
-			BasePrice: 10,
-		},
-		Food: {
-			Name:      Food,
-			BasePrice: 10,
-		},
 	}
 }
