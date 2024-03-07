@@ -63,13 +63,15 @@ func New() *Game {
 
 	resources := resource.LoadWorldResources()
 
-	gc := gameclock.NewGameClock(0, 1)
+	gc := gameclock.NewGameClock(0, 2)
 
 	w := world.New(gameChannels, resources)
 
+	economyNewDayChan := make(chan gameclock.GameTime)
+
 	playerState := newPlayer()
 	corporations := corporation.NewCorpGroup(gameChannels)
-	gameEconomy := economy.NewEconomy(*gameChannels, resources, w.GetZoneIds(), gc)
+	gameEconomy := economy.NewEconomy(*gameChannels, resources, w.GetZoneIds(), gc, economyNewDayChan)
 
 	corporations.Corporations[1] = playerState.Corporation
 
@@ -96,7 +98,7 @@ func Start() error {
 	go game.Corporations.Run()
 	go game.PlayerState.listenNotifications()
 	go game.gameClock.StartTime()
-	go game.Economy.Listen()
+	go game.Economy.Run()
 
 	printTestLog(game)
 

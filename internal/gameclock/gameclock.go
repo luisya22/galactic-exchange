@@ -26,12 +26,14 @@ type GameClock struct {
 	tickerInterval      time.Duration
 	rw                  sync.RWMutex
 	newTickerMultiplier chan float64
+	dayChanSubcribers   []chan GameTime
 }
 
 func NewGameClock(initialTime GameTime, gameSpeedMultiplier float64) *GameClock {
 	gc := &GameClock{
 		currentTime:         initialTime,
 		newTickerMultiplier: make(chan float64),
+		dayChanSubcribers:   []chan GameTime{},
 	}
 
 	gc.setTickerInterval(gameSpeedMultiplier)
@@ -45,6 +47,19 @@ func (gc *GameClock) Update() {
 	defer gc.rw.Unlock()
 
 	gc.currentTime++
+
+	if gc.currentTime%hoursPerDay == 0 {
+		for _, subscriber := range gc.dayChanSubcribers {
+			select {
+			case subscriber <- gc.currentTime:
+			default:
+			}
+		}
+	}
+}
+
+func (gc *GameClock) Subscribe(subscriber chan GameTime) {
+	gc.dayChanSubcribers = append(gc.dayChanSubcribers, subscriber)
 }
 
 func (gc *GameClock) GetCurrentTime() GameTime {
@@ -84,6 +99,21 @@ func (gt GameTime) Before(gametime GameTime) bool {
 
 func (gt GameTime) Add(gtd GameTimeDuration) GameTime {
 	return gt + GameTime(gtd)
+}
+
+func (gt GameTime) Sub(gtd GameTime) GameTime {
+	return gt - gtd
+}
+
+func (gt GameTime) StartOfDay() GameTime {
+	diff := gt % hoursPerDay
+	return gt - diff
+}
+
+func (gt GameTime) PreviousDay() GameTime {
+	previousDayTime := gt.StartOfDay() - 1
+
+	return previousDayTime.StartOfDay()
 }
 
 func (gc *GameClock) setTickerInterval(multiplier float64) {
