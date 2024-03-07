@@ -14,6 +14,8 @@ import (
 // Communicate with World to check planet events or emergencies
 // Calculate current market trends
 
+type resourcePrices map[string]float64
+
 type Economy struct {
 	transactions                   []transaction
 	zoneTransactions               map[string][]int
@@ -29,6 +31,9 @@ type Economy struct {
 	zoneMutexes                    map[string]*sync.RWMutex
 	resources                      map[string]resource.Resource
 	gameClock                      *gameclock.GameClock
+	resourcePrices                 map[string]resourcePrices
+	zoneAnalytics                  zoneAnalytics
+	newDayChan                     chan gameclock.GameTime
 }
 
 // type contract struct {
@@ -40,16 +45,27 @@ type Economy struct {
 // 	endTime       gameclock.GameTime
 // }
 
-func NewEconomy(gameChannels gamecomm.GameChannels, resources map[string]resource.Resource, zoneIds []string, gc *gameclock.GameClock) *Economy {
+func NewEconomy(gameChannels gamecomm.GameChannels, resources map[string]resource.Resource, zoneIds []string, gc *gameclock.GameClock, newDayChan chan gameclock.GameTime) *Economy {
 
 	sellOffers := make(map[string][]MarketListing, len(zoneIds))
 	zoneSellOfferCounter := make(map[string]int, len(zoneIds))
 	zoneMutexes := make(map[string]*sync.RWMutex, len(zoneIds))
+	zoneAnalytics := make(zoneAnalytics, len(zoneIds))
+	rp := make(map[string]resourcePrices, len(zoneIds))
 
 	for _, zoneId := range zoneIds {
 		sellOffers[zoneId] = []MarketListing{}
 		zoneSellOfferCounter[zoneId] = 0
 		zoneMutexes[zoneId] = new(sync.RWMutex)
+		zoneAnalytics[zoneId] = newAnalytics()
+
+		// TODO: Optimize
+		prices := make(resourcePrices)
+		for _, r := range resources {
+			prices[r.Name] = r.BasePrice
+		}
+
+		rp[zoneId] = prices
 	}
 
 	return &Economy{
@@ -63,11 +79,38 @@ func NewEconomy(gameChannels gamecomm.GameChannels, resources map[string]resourc
 		zoneMutexes:                    zoneMutexes,
 		resources:                      resources,
 		gameClock:                      gc,
+		zoneAnalytics:                  zoneAnalytics,
+		resourcePrices:                 rp,
+		newDayChan:                     newDayChan,
 	}
 }
 
 func (e *Economy) Run() {
-	e.Listen()
+	go e.listen()
+	go e.priceUpdate()
+
+}
+
+func (e *Economy) priceUpdate() {
+	e.gameClock.Subscribe(e.newDayChan)
+
+	for newDayTime := range e.newDayChan {
+		previousDay := newDayTime.PreviousDay()
+		for zoneId, a := range e.zoneAnalytics {
+
+			e.rw.Lock()
+			a.rw.Lock()
+			e.resourcePrices[zoneId] = a.updateItemPrices(e.resources, e.resourcePrices[zoneId], previousDay)
+			a.rw.Unlock()
+			e.rw.Unlock()
+
+			a.rw.Lock()
+			a.storeHistoricPrices(e.resources, e.resourcePrices[zoneId], newDayTime)
+			a.rw.Unlock()
+		}
+
+	}
+
 }
 
 // Save contracts and existing trades between Corporation and Planets
@@ -81,7 +124,7 @@ func (e *Economy) Run() {
 // 		resource:      resource,
 // 		price:         price,
 // 		interval:      interval,
-// 		endTime:       endTime,
+// 		endTime:       endTime,,
 // 	}
 //
 // 	fmt.Println(c.corporationId, c.planetId, c.resource, c.price, c.interval, c.endTime)

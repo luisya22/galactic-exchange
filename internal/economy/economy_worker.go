@@ -6,11 +6,14 @@ import (
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
 )
 
-func (e *Economy) Listen() {
+func (e *Economy) listen() {
 	for i := 0; i < e.Workers; i++ {
 		go e.worker(e.gameChannels.EconomyChannel)
 	}
 }
+
+// TODO: Add here all the analytics stuff
+// TODO: Job that runs daily to adjust prices
 
 // TODO: add WaitGroup to all the workers
 // TODO: Test
