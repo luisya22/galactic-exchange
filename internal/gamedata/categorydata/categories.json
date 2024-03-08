@@ -1,0 +1,33 @@
+{
+    "ship_building": {
+        "name": "Ship Building and Aerospace",
+        "description": "Shipbuilding and Aerospace worlds engineer the galaxy's vessels, from sleek scouts to mighty cruisers, driving demand for alloys, electronics, propulsion fuels, and rare minerals. Their docks and hangars are always in need of materials to fuel the next leap across the stars.",
+        "resources": ["gold"]
+
+    },
+    "agriculture": {
+        "name": "Agriculture and BioEngineering",
+        "description": "Planets focused on Agriculture and Bioengineering are where science meets sustenance, producing food and biofuels while pushing the boundaries of genetic engineering. They seek genetic samples, fertilizers, water resources, and bio-lab equipment to cultivate life and innovation.",
+        "resources": ["water"]
+    },
+    "mining": {
+        "name": "Mining and Resource Extraction",
+        "description": "Mining and Resource Extraction planets delve into the heart of celestial bodies to unearth precious resources, from common metals to exotic minerals. Their operations hinge on advanced machinery, explosives for extraction, and energy supplies to power the relentless search for the galaxy's buried treasures.",
+        "resources": ["iron", "gold"]
+    },
+    "energy": {
+        "name": "Energy Production",
+        "description": "Energy Production worlds are the dynamos of civilization, harnessing solar, wind, nuclear, and exotic sources to keep the gears of society turning. They're on the lookout for innovative energy technologies, fuel sources for their reactors, and maintenance gear to sustain their ceaseless output.",
+        "resources": ["water", "iron"]
+    },
+    "research": {
+        "name": "Research and Development",
+        "description": "R&D planets are the think tanks where the future is forged, from new materials to life-saving medicines. These crucibles of innovation demand rare materials for experimentation, state-of-the-art lab equipment, and data storage solutions to harbor their groundbreaking discoveries.",
+        "resources": ["water", "iron"]
+    },
+    "infrastructure": {
+        "name": "Infrastructure Construction",
+        "description": "Infrastructure Construction worlds shape the environments of tomorrow, building everything from towering cityscapes to interplanetary transit systems. They require vast quantities of building materials like steel and concrete, smart construction technologies, and heavy machinery to sculpt the face of planets and moons.",
+        "resources": ["iron"]
+    }
+}

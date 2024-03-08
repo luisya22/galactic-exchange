@@ -21,6 +21,7 @@ type World struct {
 	Workers         int
 	WorldChan       chan gamecomm.WorldCommand
 	Size            float64
+	Categories      map[string]Category
 }
 
 func New(gameChannels *gamecomm.GameChannels, resources map[string]resource.Resource) *World {
@@ -28,6 +29,8 @@ func New(gameChannels *gamecomm.GameChannels, resources map[string]resource.Reso
 	randomnumber := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	allZoneTypes := CreateZoneTypes()
+	allCategories := loadCategories()
+
 	world := &World{
 		AllResources: resources,
 		AllZoneTypes: allZoneTypes,
@@ -35,6 +38,7 @@ func New(gameChannels *gamecomm.GameChannels, resources map[string]resource.Reso
 		Workers:      100,
 		WorldChan:    gameChannels.WorldChannel,
 		Size:         10_000,
+		Categories:   allCategories,
 	}
 
 	world.Zones = make(map[string]*Zone, 1000)

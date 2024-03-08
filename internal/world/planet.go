@@ -10,15 +10,16 @@ import (
 )
 
 type Planet struct {
-	Name           string
-	Location       Coordinates
-	Resources      map[string]int
-	Population     int
-	DangerLevel    int
-	ResourceDemand map[string]int
-	IsHabitable    bool
-	IsHarvestable  bool
-	RW             sync.RWMutex
+	Name            string
+	Location        Coordinates
+	Resources       map[string]int
+	Population      int
+	DangerLevel     int
+	ResourceDemand  map[string]int
+	IsHabitable     bool
+	IsHarvestable   bool
+	CategoryProfile planetCategories
+	RW              sync.RWMutex
 }
 
 func (w *World) IsHabitable(probability float64) bool {
@@ -55,6 +56,7 @@ func (w *World) GeneratePlanetsInZone(numPlanets int, zone Zone, zoneType ZoneTy
 		}
 
 		planet.RW.Lock()
+		planet.CategoryProfile = w.generatePlanetCategoryProfile()
 		GeneratePlanetResources(w, zone, planet)
 		planet.RW.Unlock()
 
