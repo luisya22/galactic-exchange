@@ -3,6 +3,7 @@ package economy
 import (
 	"fmt"
 
+	"github.com/luisya22/galactic-exchange/internal/gameclock"
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
 )
 
@@ -15,6 +16,7 @@ type MarketListing struct {
 	RemainingAmount int
 	Price           float64
 	CorporationId   uint64
+	ListTime        gameclock.GameTime
 }
 
 func (e *Economy) addMarketListing(zoneId string, so MarketListing) (string, error) {

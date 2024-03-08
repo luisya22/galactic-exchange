@@ -34,65 +34,65 @@ func newAnalytics() *analytics {
 	}
 }
 
-// func (a *analytics) updateListingVolume(resource string, quantity int, listingTime gameclock.GameTime) {
-// 	a.rw.Lock()
-// 	defer a.rw.Unlock()
-//
-// 	if _, ok := a.listingVolume[listingTime.StartOfDay()]; !ok {
-// 		a.listingVolume[listingTime.StartOfDay()] = make(resourceVolume)
-// 	}
-//
-// 	if _, ok := a.listingVolume[listingTime.StartOfDay()]; !ok {
-// 		a.listingVolume[listingTime.StartOfDay()][resource] = 0
-// 	}
-//
-// 	a.listingVolume[listingTime.StartOfDay()][resource] += quantity
-// }
-//
-// func (a *analytics) updateListingAmount(resource string, listingTime gameclock.GameTime) {
-// 	a.rw.Lock()
-// 	defer a.rw.Unlock()
-//
-// 	if _, ok := a.listingAmount[listingTime.StartOfDay()]; !ok {
-// 		a.listingAmount[listingTime.StartOfDay()] = make(transactionFrequency)
-// 	}
-//
-// 	if _, ok := a.listingAmount[listingTime.StartOfDay()][resource]; !ok {
-// 		a.listingAmount[listingTime.StartOfDay()][resource] = 0
-// 	}
-//
-// 	a.listingAmount[listingTime.StartOfDay()][resource] += 1
-// }
-//
-// func (a *analytics) updateSalesVolume(resource string, quantity int, saleTime gameclock.GameTime) {
-// 	a.rw.Lock()
-// 	defer a.rw.Unlock()
-//
-// 	if _, ok := a.salesVolume[saleTime.StartOfDay()]; !ok {
-// 		a.salesVolume[saleTime.StartOfDay()] = make(resourceVolume)
-// 	}
-//
-// 	if _, ok := a.salesVolume[saleTime.StartOfDay()]; !ok {
-// 		a.salesVolume[saleTime.StartOfDay()][resource] = 0
-// 	}
-//
-// 	a.salesVolume[saleTime.StartOfDay()][resource] += quantity
-// }
-//
-// func (a *analytics) updateSalesAmount(resource string, saleTime gameclock.GameTime) {
-// 	a.rw.Lock()
-// 	defer a.rw.Unlock()
-//
-// 	if _, ok := a.salesAmount[saleTime.StartOfDay()]; !ok {
-// 		a.salesAmount[saleTime.StartOfDay()] = make(transactionFrequency)
-// 	}
-//
-// 	if _, ok := a.salesAmount[saleTime.StartOfDay()]; !ok {
-// 		a.salesAmount[saleTime.StartOfDay()][resource] = 0
-// 	}
-//
-// 	a.salesAmount[saleTime.StartOfDay()][resource]++
-// }
+func (a *analytics) updateListingVolume(resource string, quantity int, listingTime gameclock.GameTime) {
+	a.rw.Lock()
+	defer a.rw.Unlock()
+
+	if _, ok := a.listingVolume[listingTime.StartOfDay()]; !ok {
+		a.listingVolume[listingTime.StartOfDay()] = make(resourceVolume)
+	}
+
+	if _, ok := a.listingVolume[listingTime.StartOfDay()][resource]; !ok {
+		a.listingVolume[listingTime.StartOfDay()][resource] = 0
+	}
+
+	a.listingVolume[listingTime.StartOfDay()][resource] += quantity
+}
+
+func (a *analytics) updateListingAmount(resource string, listingTime gameclock.GameTime) {
+	a.rw.Lock()
+	defer a.rw.Unlock()
+
+	if _, ok := a.listingAmount[listingTime.StartOfDay()]; !ok {
+		a.listingAmount[listingTime.StartOfDay()] = make(transactionFrequency)
+	}
+
+	if _, ok := a.listingAmount[listingTime.StartOfDay()][resource]; !ok {
+		a.listingAmount[listingTime.StartOfDay()][resource] = 0
+	}
+
+	a.listingAmount[listingTime.StartOfDay()][resource] += 1
+}
+
+func (a *analytics) updateSalesVolume(resource string, quantity int, saleTime gameclock.GameTime) {
+	a.rw.Lock()
+	defer a.rw.Unlock()
+
+	if _, ok := a.salesVolume[saleTime.StartOfDay()]; !ok {
+		a.salesVolume[saleTime.StartOfDay()] = make(resourceVolume)
+	}
+
+	if _, ok := a.salesVolume[saleTime.StartOfDay()][resource]; !ok {
+		a.salesVolume[saleTime.StartOfDay()][resource] = 0
+	}
+
+	a.salesVolume[saleTime.StartOfDay()][resource] += quantity
+}
+
+func (a *analytics) updateSalesAmount(resource string, saleTime gameclock.GameTime) {
+	a.rw.Lock()
+	defer a.rw.Unlock()
+
+	if _, ok := a.salesAmount[saleTime.StartOfDay()]; !ok {
+		a.salesAmount[saleTime.StartOfDay()] = make(transactionFrequency)
+	}
+
+	if _, ok := a.salesAmount[saleTime.StartOfDay()][resource]; !ok {
+		a.salesAmount[saleTime.StartOfDay()][resource] = 0
+	}
+
+	a.salesAmount[saleTime.StartOfDay()][resource]++
+}
 
 func (a *analytics) calculateDailySupply(resource string, day gameclock.GameTime) int {
 	// a.rw.Lock()

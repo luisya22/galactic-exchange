@@ -21,6 +21,7 @@ type World struct {
 	Workers         int
 	WorldChan       chan gamecomm.WorldCommand
 	Size            float64
+	Categories      map[string]Category
 }
 
 func New(gameChannels *gamecomm.GameChannels, resources map[string]resource.Resource) *World {

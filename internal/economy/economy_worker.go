@@ -12,14 +12,14 @@ func (e *Economy) listen() {
 	}
 }
 
-// TODO: Add here all the analytics stuff
-// TODO: Job that runs daily to adjust prices
-
 // TODO: add WaitGroup to all the workers
 // TODO: Test
 func (e *Economy) worker(ch <-chan gamecomm.EconomyCommand) {
 
 	for command := range ch {
+
+		listingTime := e.gameClock.GetCurrentTime()
+
 		switch command.Action {
 		case gamecomm.AddMarketListing:
 			so := MarketListing{
@@ -27,12 +27,18 @@ func (e *Economy) worker(ch <-chan gamecomm.EconomyCommand) {
 				Amount:        command.Amount,
 				Price:         command.Price,
 				CorporationId: command.CorporationId,
+				ListTime:      listingTime,
 			}
 
 			id, err := e.addMarketListing(command.ZoneId, so)
 			if err != nil {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
 				return
+			}
+
+			if _, ok := e.zoneAnalytics[command.ZoneId]; ok {
+				e.zoneAnalytics[command.ZoneId].updateListingAmount(command.Resource, listingTime)
+				e.zoneAnalytics[command.ZoneId].updateListingVolume(command.Resource, command.Amount, listingTime)
 			}
 
 			command.ResponseChannel <- gamecomm.ChanResponse{Val: id}
@@ -50,6 +56,11 @@ func (e *Economy) worker(ch <-chan gamecomm.EconomyCommand) {
 				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
 				close(command.ResponseChannel)
 				continue
+			}
+
+			if _, ok := e.zoneAnalytics[command.ZoneId]; ok {
+				e.zoneAnalytics[command.ZoneId].updateSalesAmount(command.Resource, listingTime)
+				e.zoneAnalytics[command.ZoneId].updateSalesVolume(command.Resource, command.Amount, listingTime)
 			}
 
 			command.ResponseChannel <- gamecomm.ChanResponse{Val: amount}
