@@ -44,7 +44,7 @@ func (rs *resourceSlice) Contains(s string) bool {
 	return false
 }
 
-func (w *World) loadCategories() map[string]Category {
+func loadCategories() map[string]Category {
 	categories := make(map[string]Category, 6)
 
 	file, err := gamedata.Files.Open("categoriesdata/categories.json")
@@ -57,8 +57,6 @@ func (w *World) loadCategories() map[string]Category {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-
-	w.Categories = categories
 
 	return categories
 }
