@@ -45,7 +45,7 @@ type Economy struct {
 // 	endTime       gameclock.GameTime
 // }
 
-func NewEconomy(gameChannels gamecomm.GameChannels, resources map[string]resource.Resource, zoneIds []string, gc *gameclock.GameClock, newDayChan chan gameclock.GameTime) *Economy {
+func NewEconomy(gameChannels gamecomm.GameChannels, resources map[string]resource.Resource, zoneIds []string, gc *gameclock.GameClock) *Economy {
 
 	sellOffers := make(map[string][]MarketListing, len(zoneIds))
 	zoneSellOfferCounter := make(map[string]int, len(zoneIds))
@@ -81,7 +81,7 @@ func NewEconomy(gameChannels gamecomm.GameChannels, resources map[string]resourc
 		gameClock:                      gc,
 		zoneAnalytics:                  zoneAnalytics,
 		resourcePrices:                 rp,
-		newDayChan:                     newDayChan,
+		newDayChan:                     make(chan gameclock.GameTime),
 	}
 }
 

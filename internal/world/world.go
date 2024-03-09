@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/luisya22/galactic-exchange/internal/gameclock"
 	"github.com/luisya22/galactic-exchange/internal/gamecomm"
 	"github.com/luisya22/galactic-exchange/internal/resource"
 )
@@ -22,11 +23,14 @@ type World struct {
 	WorldChan       chan gamecomm.WorldCommand
 	Size            float64
 	Categories      map[string]Category
+	gameClock       *gameclock.GameClock
+	newDayChan      chan gameclock.GameTime
 }
 
-func New(gameChannels *gamecomm.GameChannels, resources map[string]resource.Resource) *World {
+func New(gameChannels *gamecomm.GameChannels, resources map[string]resource.Resource, gc *gameclock.GameClock) *World {
 
 	randomnumber := rand.New(rand.NewSource(time.Now().UnixNano()))
+	newDayChan := make(chan gameclock.GameTime)
 
 	allZoneTypes := CreateZoneTypes()
 	allCategories := loadCategories()
@@ -39,6 +43,8 @@ func New(gameChannels *gamecomm.GameChannels, resources map[string]resource.Reso
 		WorldChan:    gameChannels.WorldChannel,
 		Size:         10_000,
 		Categories:   allCategories,
+		gameClock:    gc,
+		newDayChan:   newDayChan,
 	}
 
 	world.Zones = make(map[string]*Zone, 1000)
@@ -47,8 +53,10 @@ func New(gameChannels *gamecomm.GameChannels, resources map[string]resource.Reso
 	world.LayerBoundaries = GenerateLayerBoundaries(world)
 
 	world.GenerateZones(1000)
+	world.gameClock.Subscribe(newDayChan)
 
 	go world.Listen()
+	go world.simulateConsumption()
 
 	return world
 }
