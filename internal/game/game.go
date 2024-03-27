@@ -59,19 +59,18 @@ func New() *Game {
 		WorldChannel:   make(chan gamecomm.WorldCommand, 100),
 		CorpChannel:    make(chan gamecomm.CorpCommand, 100),
 		MissionChannel: make(chan gamecomm.MissionCommand, 100),
+		EconomyChannel: make(chan gamecomm.EconomyCommand, 100),
 	}
 
 	resources := resource.LoadWorldResources()
 
-	gc := gameclock.NewGameClock(0, 2)
+	gc := gameclock.NewGameClock(0, 1)
 
-	w := world.New(gameChannels, resources)
-
-	economyNewDayChan := make(chan gameclock.GameTime)
+	w := world.New(gameChannels, resources, gc)
 
 	playerState := newPlayer()
 	corporations := corporation.NewCorpGroup(gameChannels)
-	gameEconomy := economy.NewEconomy(*gameChannels, resources, w.GetZoneIds(), gc, economyNewDayChan)
+	gameEconomy := economy.NewEconomy(*gameChannels, resources, w.GetZoneIds(), gc)
 
 	corporations.Corporations[1] = playerState.Corporation
 

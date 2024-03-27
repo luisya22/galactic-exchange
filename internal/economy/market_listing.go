@@ -85,6 +85,53 @@ func (e *Economy) getZoneMarketListings(zoneId string) ([]MarketListing, error) 
 	return marketListings, nil
 }
 
+func (e *Economy) getZoneMarketListingsByResource(zoneId string, resourceName string) ([]MarketListing, error) {
+	e.rw.RLock()
+	mutex, ok := e.zoneMutexes[zoneId]
+	e.rw.RUnlock()
+	if !ok {
+		return []MarketListing{}, fmt.Errorf("error: no mutex found for zone ID '%s'", zoneId)
+	}
+
+	mutex.RLock()
+	defer mutex.RUnlock()
+
+	marketListings := []MarketListing{}
+
+	for _, ml := range e.MarketListings[zoneId] {
+		if ml.ResourceName == resourceName {
+			marketListings = append(marketListings, ml)
+		}
+	}
+
+	return marketListings, nil
+}
+
+func (e *Economy) getZoneResourceMarketPrice(zoneId string, resourceName string) (float64, error) {
+	e.rw.RLock()
+	mutex, ok := e.zoneMutexes[zoneId]
+	e.rw.RUnlock()
+	if !ok {
+		return 0, fmt.Errorf("error: no mutex found for zone ID '%s'", zoneId)
+	}
+
+	mutex.RLock()
+	defer mutex.RUnlock()
+
+	resourcePrices, ok := e.resourcePrices[zoneId]
+	if !ok {
+		return 0, fmt.Errorf("error: resourcePrices not found for zone ID '%s'", zoneId)
+	}
+
+	resourcePrice, ok := resourcePrices[resourceName]
+	if !ok {
+		return 0, fmt.Errorf("error: resource price not found '%s'", resourceName)
+	}
+
+	return resourcePrice, nil
+
+}
+
 func (e *Economy) getMarketListing(zoneId string, listingId string) (MarketListing, error) {
 	e.rw.RLock()
 	mutex, ok := e.zoneMutexes[zoneId]

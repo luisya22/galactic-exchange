@@ -20,6 +20,7 @@ type Planet struct {
 	IsHarvestable   bool
 	CategoryProfile planetCategories
 	RW              sync.RWMutex
+	ZoneId          string
 }
 
 func (w *World) IsHabitable(probability float64) bool {
@@ -53,10 +54,14 @@ func (w *World) GeneratePlanetsInZone(numPlanets int, zone Zone, zoneType ZoneTy
 			DangerLevel:   w.randomInt(zone.DangerRange[0], zone.DangerRange[1]),
 			IsHabitable:   isHabitable,
 			IsHarvestable: !isHabitable,
+			ZoneId:        zone.Name,
 		}
 
 		planet.RW.Lock()
-		planet.CategoryProfile = w.generatePlanetCategoryProfile()
+
+		if planet.IsHabitable {
+			planet.CategoryProfile = w.generatePlanetCategoryProfile()
+		}
 		GeneratePlanetResources(w, zone, planet)
 		planet.RW.Unlock()
 
@@ -129,6 +134,7 @@ func (w *World) RemoveResourcesFromPlanet(planetId string, resourceName string, 
 	w.RW.Lock()
 	planet, err := w.getPlanetReference(planetId)
 	if err != nil {
+		w.RW.Unlock()
 		return 0, err
 	}
 	w.RW.Unlock()
@@ -143,6 +149,28 @@ func (w *World) RemoveResourcesFromPlanet(planetId string, resourceName string, 
 	}
 
 	planet.Resources[resourceName] -= amount
+
+	return planet.Resources[resourceName], nil
+}
+
+func (w *World) DepletePlanetResource(planetId string, resourceName string, amount int) (int, error) {
+	if amount < 0 {
+		return 0, fmt.Errorf("error: amount should be greater than zero")
+	}
+
+	w.RW.Lock()
+	planet, err := w.getPlanetReference(planetId)
+	if err != nil {
+		w.RW.Unlock()
+		return 0, err
+	}
+	w.RW.Unlock()
+
+	planet.RW.Lock()
+	defer planet.RW.Unlock()
+
+	remainingQty := planet.Resources[resourceName] - amount
+	planet.Resources[resourceName] = max(remainingQty, 0)
 
 	return planet.Resources[resourceName], nil
 }

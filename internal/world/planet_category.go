@@ -9,8 +9,10 @@ import (
 
 // planetCategories is the main categories of the planet
 type planetCategories struct {
-	mainProfile      categoryProfile
-	secondaryProfile categoryProfile
+	mainProfile            categoryProfile
+	secondaryProfile       categoryProfile
+	foodMonthlyProduction  int
+	waterMonthlyProduction int
 }
 
 type categoryProfile struct {
@@ -47,7 +49,7 @@ func (rs *resourceSlice) Contains(s string) bool {
 func loadCategories() map[string]Category {
 	categories := make(map[string]Category, 6)
 
-	file, err := gamedata.Files.Open("categoriesdata/categories.json")
+	file, err := gamedata.Files.Open("categorydata/categories.json")
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -68,8 +70,8 @@ func (w *World) generatePlanetCategoryProfile() planetCategories {
 		categories = append(categories, categoryId)
 	}
 
-	mainCategoryIndex := w.randomInt(0, len(categories))
-	secondaryCategoryIndex := w.randomInt(0, len(categories))
+	mainCategoryIndex := w.randomInt(0, len(categories)-1)
+	secondaryCategoryIndex := w.randomInt(0, len(categories)-1)
 
 	mainCategory := categories[mainCategoryIndex]
 	secondaryCategory := categories[secondaryCategoryIndex]
@@ -124,10 +126,49 @@ func (w *World) generatePlanetCategoryProfile() planetCategories {
 		resourceConsumption: secondaryConsumption,
 	}
 
+	// TODO: Make a better design for this later
+	foodMonthlyProduction := w.randomInt(0, 1_000_000_000)
+	waterMonthlyProduction := w.randomInt(0, 1_000_000_000)
+
 	return planetCategories{
-		mainProfile:      mainCategoryProfile,
-		secondaryProfile: secondaryCategoryProfile,
+		mainProfile:            mainCategoryProfile,
+		secondaryProfile:       secondaryCategoryProfile,
+		foodMonthlyProduction:  foodMonthlyProduction,
+		waterMonthlyProduction: waterMonthlyProduction,
 	}
 }
 
 // Each level would give x amount of more consumption (also based on population)
+// TODO: Loop per planet consuming random resources.
+// TODO: It would be basics based on population.
+// TODO: Also by technology
+// TODO: Add bonus consumptions, this would have resource and endTime
+
+func (w *World) simulateConsumption() {
+	for range w.newDayChan {
+		w.consumeResources()
+	}
+}
+
+func (w *World) consumeResources() {
+	for _, planet := range w.Planets {
+
+		if !planet.IsHabitable {
+			continue
+		}
+
+		cp := planet.CategoryProfile
+
+		for resourceName, rc := range cp.mainProfile.resourceConsumption {
+			w.processResourceConsumption(planet.Name, resourceName, rc.minConsumption, rc.maxConsumption)
+		}
+
+		for resourceName, rc := range cp.secondaryProfile.resourceConsumption {
+			w.processResourceConsumption(planet.Name, resourceName, rc.minConsumption, rc.maxConsumption)
+		}
+
+		remaining, _ := w.DepletePlanetResource(planet.Name, "food", planet.Population)
+		// TODO: food restock should happen only if food production * 30 < actual stock
+		w.basicSupplyRestock(planet.Name, "food", cp.foodMonthlyProduction, remaining)
+	}
+}
