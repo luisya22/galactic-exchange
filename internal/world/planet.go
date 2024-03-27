@@ -20,6 +20,7 @@ type Planet struct {
 	IsHarvestable   bool
 	CategoryProfile planetCategories
 	RW              sync.RWMutex
+	ZoneId          string
 }
 
 func (w *World) IsHabitable(probability float64) bool {
@@ -53,6 +54,7 @@ func (w *World) GeneratePlanetsInZone(numPlanets int, zone Zone, zoneType ZoneTy
 			DangerLevel:   w.randomInt(zone.DangerRange[0], zone.DangerRange[1]),
 			IsHabitable:   isHabitable,
 			IsHarvestable: !isHabitable,
+			ZoneId:        zone.Name,
 		}
 
 		planet.RW.Lock()

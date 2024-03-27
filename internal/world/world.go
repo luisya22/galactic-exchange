@@ -21,6 +21,7 @@ type World struct {
 	RW              sync.RWMutex
 	Workers         int
 	WorldChan       chan gamecomm.WorldCommand
+	economyChan     chan gamecomm.EconomyCommand
 	Size            float64
 	Categories      map[string]Category
 	gameClock       *gameclock.GameClock
@@ -41,6 +42,7 @@ func New(gameChannels *gamecomm.GameChannels, resources map[string]resource.Reso
 		RandomNumber: randomnumber,
 		Workers:      100,
 		WorldChan:    gameChannels.WorldChannel,
+		economyChan:  gameChannels.EconomyChannel,
 		Size:         10_000,
 		Categories:   allCategories,
 		gameClock:    gc,

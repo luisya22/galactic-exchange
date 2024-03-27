@@ -2,7 +2,6 @@ package world
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	"github.com/luisya22/galactic-exchange/internal/gamedata"
@@ -10,8 +9,10 @@ import (
 
 // planetCategories is the main categories of the planet
 type planetCategories struct {
-	mainProfile      categoryProfile
-	secondaryProfile categoryProfile
+	mainProfile            categoryProfile
+	secondaryProfile       categoryProfile
+	foodMonthlyProduction  int
+	waterMonthlyProduction int
 }
 
 type categoryProfile struct {
@@ -125,9 +126,15 @@ func (w *World) generatePlanetCategoryProfile() planetCategories {
 		resourceConsumption: secondaryConsumption,
 	}
 
+	// TODO: Make a better design for this later
+	foodMonthlyProduction := w.randomInt(0, 1_000_000_000)
+	waterMonthlyProduction := w.randomInt(0, 1_000_000_000)
+
 	return planetCategories{
-		mainProfile:      mainCategoryProfile,
-		secondaryProfile: secondaryCategoryProfile,
+		mainProfile:            mainCategoryProfile,
+		secondaryProfile:       secondaryCategoryProfile,
+		foodMonthlyProduction:  foodMonthlyProduction,
+		waterMonthlyProduction: waterMonthlyProduction,
 	}
 }
 
@@ -160,66 +167,8 @@ func (w *World) consumeResources() {
 			w.processResourceConsumption(planet.Name, resourceName, rc.minConsumption, rc.maxConsumption)
 		}
 
-		_, _ = w.DepletePlanetResource(planet.Name, "food", planet.Population)
+		remaining, _ := w.DepletePlanetResource(planet.Name, "food", planet.Population)
 		// TODO: food restock should happen only if food production * 30 < actual stock
+		w.basicSupplyRestock(planet.Name, "food", cp.foodMonthlyProduction, remaining)
 	}
 }
-
-func (w *World) processResourceConsumption(planetId string, resourceName string, minConsumption int, maxConsumption int) {
-	quantity := w.randomInt(minConsumption, maxConsumption)
-	remaning, _ := w.DepletePlanetResource(planetId, resourceName, quantity)
-
-	weeklyConsumption := quantity * 7
-
-	w.restockResources(planetId, resourceName, weeklyConsumption, remaning)
-}
-
-func classifyResourceLevel(weeklyConsumption int, totalStorage int) string {
-	if totalStorage == 0 {
-		return "depleted"
-	}
-
-	consumptionPercentage := (weeklyConsumption / totalStorage) * 100
-
-	switch {
-	case consumptionPercentage < 10:
-		return "high"
-	case consumptionPercentage >= 10 && consumptionPercentage < 50:
-		return "medium"
-	case consumptionPercentage >= 50 && consumptionPercentage < 75:
-		return "low"
-	default:
-		return "depleted"
-	}
-}
-
-func purchaseProbability(resourceLevel string) float64 {
-	switch resourceLevel {
-	case "high":
-		return 0.10
-	case "medium":
-		return 0.50
-	case "low":
-		return 0.75
-	case "depleted":
-		return 1.00
-	default:
-		return 0.00
-	}
-}
-
-func (w *World) restockResources(planetId string, resource string, weeklyConsumption int, totalStorage int) {
-	resourceLevel := classifyResourceLevel(weeklyConsumption, totalStorage)
-	purchaseProb := purchaseProbability(resourceLevel)
-
-	randomFloat := w.RandomNumber.Float64()
-
-	wantsToBuy := w.randomInt(weeklyConsumption, weeklyConsumption*4)
-
-	if randomFloat <= purchaseProb {
-		// TODO: Make purchase
-		fmt.Printf("%v wants to buy %v %v\n", planetId, wantsToBuy, resource)
-	}
-}
-
-// TODO: planets should analyze their resource scarcity

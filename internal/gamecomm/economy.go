@@ -19,7 +19,9 @@ const (
 	AddMarketListing EconomyCommandType = iota
 	BuyMarketListing
 	GetMarketListings
+	GetMarketListingsByResource
 	EditMarketListingPrice
+	GetMarketPrice
 )
 
 type MarketListing struct {

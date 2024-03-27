@@ -15,7 +15,6 @@ func (e *Economy) listen() {
 // TODO: add WaitGroup to all the workers
 // TODO: Test
 func (e *Economy) worker(ch <-chan gamecomm.EconomyCommand) {
-
 	for command := range ch {
 
 		listingTime := e.gameClock.GetCurrentTime()
@@ -94,6 +93,24 @@ func (e *Economy) worker(ch <-chan gamecomm.EconomyCommand) {
 			}
 
 			command.ResponseChannel <- gamecomm.ChanResponse{Val: "OK"}
+		case gamecomm.GetMarketListingsByResource:
+			marketListings, err := e.getZoneMarketListingsByResource(command.ZoneId, command.Resource)
+			if err != nil {
+				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
+				close(command.ResponseChannel)
+				continue
+			}
+
+			command.ResponseChannel <- gamecomm.ChanResponse{Val: marketListings}
+		case gamecomm.GetMarketPrice:
+			marketPrice, err := e.getZoneResourceMarketPrice(command.ZoneId, command.Resource)
+			if err != nil {
+				command.ResponseChannel <- gamecomm.ChanResponse{Err: err}
+				close(command.ResponseChannel)
+				continue
+			}
+
+			command.ResponseChannel <- gamecomm.ChanResponse{Val: marketPrice}
 		}
 
 		close(command.ResponseChannel)

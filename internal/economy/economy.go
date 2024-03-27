@@ -82,6 +82,7 @@ func NewEconomy(gameChannels gamecomm.GameChannels, resources map[string]resourc
 		zoneAnalytics:                  zoneAnalytics,
 		resourcePrices:                 rp,
 		newDayChan:                     make(chan gameclock.GameTime),
+		Workers:                        10,
 	}
 }
 

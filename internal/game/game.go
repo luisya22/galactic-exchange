@@ -59,6 +59,7 @@ func New() *Game {
 		WorldChannel:   make(chan gamecomm.WorldCommand, 100),
 		CorpChannel:    make(chan gamecomm.CorpCommand, 100),
 		MissionChannel: make(chan gamecomm.MissionCommand, 100),
+		EconomyChannel: make(chan gamecomm.EconomyCommand, 100),
 	}
 
 	resources := resource.LoadWorldResources()
