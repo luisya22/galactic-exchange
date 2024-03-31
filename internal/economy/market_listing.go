@@ -165,14 +165,17 @@ func (e *Economy) getMarketListing(zoneId string, listingId string) (MarketListi
 func (e *Economy) removeAmount(zoneId string, listingId string, amount int) (int, error) {
 	e.rw.RLock()
 	mutex, ok := e.zoneMutexes[zoneId]
+	if !ok {
+		e.rw.RUnlock()
+		return 0, fmt.Errorf("error: no mutex found for zone ID '%s'", zoneId)
+	}
+
 	zoneListings, ok := e.marketListings[zoneId]
 	if !ok {
+		e.rw.RUnlock()
 		return 0, fmt.Errorf("error: no market listing found for zone ID '%s'", zoneId)
 	}
 	e.rw.RUnlock()
-	if !ok {
-		return 0, fmt.Errorf("error: no mutex found for zone ID '%s'", zoneId)
-	}
 
 	mutex.Lock()
 	defer mutex.Unlock()
@@ -238,14 +241,17 @@ func (e *Economy) removeAmount(zoneId string, listingId string, amount int) (int
 func (e *Economy) editPrice(zoneId string, listingId string, corporationId uint64, price float64) error {
 	e.rw.RLock()
 	mutex, ok := e.zoneMutexes[zoneId]
+	if !ok {
+		e.rw.RUnlock()
+		return fmt.Errorf("error: no mutex found for zone ID '%s'", zoneId)
+	}
+
 	zoneListings, ok := e.marketListings[zoneId]
 	if !ok {
+		e.rw.RUnlock()
 		return fmt.Errorf("error: no market listing found for zone ID '%s'", zoneId)
 	}
 	e.rw.RUnlock()
-	if !ok {
-		return fmt.Errorf("error: no mutex found for zone ID '%s'", zoneId)
-	}
 
 	mutex.Lock()
 	defer mutex.Unlock()
