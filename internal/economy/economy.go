@@ -26,7 +26,7 @@ type Economy struct {
 	Workers                        int
 	rw                             sync.RWMutex
 	limit                          int
-	MarketListings                 map[string][]MarketListing
+	marketListings                 map[string]*[]MarketListing
 	zoneMarketListingCounter       map[string]int
 	zoneMutexes                    map[string]*sync.RWMutex
 	resources                      map[string]resource.Resource
@@ -47,14 +47,14 @@ type Economy struct {
 
 func NewEconomy(gameChannels gamecomm.GameChannels, resources map[string]resource.Resource, zoneIds []string, gc *gameclock.GameClock) *Economy {
 
-	sellOffers := make(map[string][]MarketListing, len(zoneIds))
+	sellOffers := make(map[string]*[]MarketListing, len(zoneIds))
 	zoneSellOfferCounter := make(map[string]int, len(zoneIds))
 	zoneMutexes := make(map[string]*sync.RWMutex, len(zoneIds))
 	zoneAnalytics := make(zoneAnalytics, len(zoneIds))
 	rp := make(map[string]resourcePrices, len(zoneIds))
 
 	for _, zoneId := range zoneIds {
-		sellOffers[zoneId] = []MarketListing{}
+		sellOffers[zoneId] = &[]MarketListing{}
 		zoneSellOfferCounter[zoneId] = 0
 		zoneMutexes[zoneId] = new(sync.RWMutex)
 		zoneAnalytics[zoneId] = newAnalytics()
@@ -71,10 +71,11 @@ func NewEconomy(gameChannels gamecomm.GameChannels, resources map[string]resourc
 	return &Economy{
 		transactions:                   []transaction{},
 		zoneTransactions:               make(map[string][]int),
+		planetTransactions:             make(map[string][]int),
 		corporationPlanetTradeRelation: make(map[uint64]int),
 		corporationContracts:           make(map[uint64][]int),
 		gameChannels:                   gameChannels,
-		MarketListings:                 sellOffers,
+		marketListings:                 sellOffers,
 		zoneMarketListingCounter:       zoneSellOfferCounter,
 		zoneMutexes:                    zoneMutexes,
 		resources:                      resources,
@@ -87,8 +88,21 @@ func NewEconomy(gameChannels gamecomm.GameChannels, resources map[string]resourc
 }
 
 func (e *Economy) Run() {
+	economyChannel := e.gameChannels.EconomyChannel
+
 	go e.listen()
 	go e.priceUpdate()
+
+	zoneIds := []string{}
+	for z := range e.zoneMutexes {
+		zoneIds = append(zoneIds, z)
+	}
+
+	resources := []resource.Resource{}
+	for _, r := range e.resources {
+		resources = append(resources, r)
+	}
+	go e.addRandomMarketListings(resources, zoneIds, economyChannel)
 
 }
 

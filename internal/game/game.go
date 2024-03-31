@@ -178,7 +178,12 @@ func newPlayer() *PlayerState {
 			Name:            "Player One Base",
 			Location:        world.Coordinates{X: 0, Y: 0},
 			StorageCapacity: 50_000,
-			StoredResources: map[string]int{"iron": 1000},
+			StoredResources: map[string]int{
+				"iron":  100_000_000_000,
+				"gold":  100_000_000_000,
+				"water": 100_000_000_000,
+				"food":  100_000_000_000,
+			},
 		},
 	}
 

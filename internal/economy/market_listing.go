@@ -20,6 +20,7 @@ type MarketListing struct {
 }
 
 func (e *Economy) addMarketListing(zoneId string, so MarketListing) (string, error) {
+
 	if _, ok := e.resources[so.ResourceName]; !ok {
 		return "", fmt.Errorf("error: resource doesn't exist")
 	}
@@ -47,6 +48,7 @@ func (e *Economy) addMarketListing(zoneId string, so MarketListing) (string, err
 
 	e.rw.RLock()
 	mutex, ok := e.zoneMutexes[zoneId]
+	zoneListings := e.marketListings[zoneId]
 	e.rw.RUnlock()
 	if !ok {
 		return "", fmt.Errorf("error: no mutex found for zone ID '%s'", zoneId)
@@ -61,36 +63,38 @@ func (e *Economy) addMarketListing(zoneId string, so MarketListing) (string, err
 	id := fmt.Sprintf("%v-%d", zoneId, num)
 
 	so.Id = id
-	e.MarketListings[zoneId] = append(e.MarketListings[zoneId], so)
+	zl := *zoneListings
+	zl = append(zl, so)
+	*zoneListings = zl
 
 	return so.Id, nil
 }
 
-func (e *Economy) getZoneMarketListings(zoneId string) ([]MarketListing, error) {
+func (e *Economy) getZoneMarketListings(zoneId string) (*[]MarketListing, error) {
 	e.rw.RLock()
 	mutex, ok := e.zoneMutexes[zoneId]
 	e.rw.RUnlock()
 	if !ok {
-		return []MarketListing{}, fmt.Errorf("error: no mutex found for zone ID '%s'", zoneId)
+		return &[]MarketListing{}, fmt.Errorf("error: no mutex found for zone ID '%s'", zoneId)
 	}
 
 	mutex.RLock()
 	defer mutex.RUnlock()
 
-	marketListings, ok := e.MarketListings[zoneId]
+	marketListings, ok := e.marketListings[zoneId]
 	if !ok {
-		return []MarketListing{}, nil
+		return &[]MarketListing{}, nil
 	}
 
 	return marketListings, nil
 }
 
-func (e *Economy) getZoneMarketListingsByResource(zoneId string, resourceName string) ([]MarketListing, error) {
+func (e *Economy) getZoneMarketListingsByResource(zoneId string, resourceName string) (*[]MarketListing, error) {
 	e.rw.RLock()
 	mutex, ok := e.zoneMutexes[zoneId]
 	e.rw.RUnlock()
 	if !ok {
-		return []MarketListing{}, fmt.Errorf("error: no mutex found for zone ID '%s'", zoneId)
+		return &[]MarketListing{}, fmt.Errorf("error: no mutex found for zone ID '%s'", zoneId)
 	}
 
 	mutex.RLock()
@@ -98,15 +102,16 @@ func (e *Economy) getZoneMarketListingsByResource(zoneId string, resourceName st
 
 	marketListings := []MarketListing{}
 
-	for _, ml := range e.MarketListings[zoneId] {
+	for _, ml := range *e.marketListings[zoneId] {
 		if ml.ResourceName == resourceName {
 			marketListings = append(marketListings, ml)
 		}
 	}
 
-	return marketListings, nil
+	return &marketListings, nil
 }
 
+// TODO: Refactor to pointer to slice granular if necessary
 func (e *Economy) getZoneResourceMarketPrice(zoneId string, resourceName string) (float64, error) {
 	e.rw.RLock()
 	mutex, ok := e.zoneMutexes[zoneId]
@@ -143,12 +148,12 @@ func (e *Economy) getMarketListing(zoneId string, listingId string) (MarketListi
 	mutex.RLock()
 	defer mutex.RUnlock()
 
-	marketListings, ok := e.MarketListings[zoneId]
+	marketListings, ok := e.marketListings[zoneId]
 	if !ok {
 		return MarketListing{}, fmt.Errorf("error: no market listing found for zone ID '%s'", zoneId)
 	}
 
-	for _, ml := range marketListings {
+	for _, ml := range *marketListings {
 		if ml.Id == listingId {
 			return ml, nil
 		}
@@ -160,7 +165,11 @@ func (e *Economy) getMarketListing(zoneId string, listingId string) (MarketListi
 func (e *Economy) removeAmount(zoneId string, listingId string, amount int) (int, error) {
 	e.rw.RLock()
 	mutex, ok := e.zoneMutexes[zoneId]
-	e.rw.Unlock()
+	zoneListings, ok := e.marketListings[zoneId]
+	if !ok {
+		return 0, fmt.Errorf("error: no market listing found for zone ID '%s'", zoneId)
+	}
+	e.rw.RUnlock()
 	if !ok {
 		return 0, fmt.Errorf("error: no mutex found for zone ID '%s'", zoneId)
 	}
@@ -168,13 +177,8 @@ func (e *Economy) removeAmount(zoneId string, listingId string, amount int) (int
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	marketListings, ok := e.MarketListings[zoneId]
-	if !ok {
-		return 0, fmt.Errorf("error: no market listing found for zone ID '%s'", zoneId)
-	}
-
 	selectedIndex := -1
-	for i, ml := range marketListings {
+	for i, ml := range *zoneListings {
 		if ml.Id == listingId {
 			selectedIndex = i
 		}
@@ -184,16 +188,20 @@ func (e *Economy) removeAmount(zoneId string, listingId string, amount int) (int
 		return 0, fmt.Errorf("error: listing not found with ID '%s'", listingId)
 	}
 
-	remainingAmount := e.MarketListings[zoneId][selectedIndex].Amount
+	zl := *zoneListings
+
+	remainingAmount := zl[selectedIndex].Amount
 	if remainingAmount < amount {
 		amount = remainingAmount
 	}
 
-	e.MarketListings[zoneId][selectedIndex].Amount -= amount
+	zl[selectedIndex].Amount -= amount
 
-	if e.MarketListings[zoneId][selectedIndex].Amount == 0 {
-		e.MarketListings[zoneId] = append(marketListings[:selectedIndex], marketListings[selectedIndex+1:]...)
+	if zl[selectedIndex].Amount == 0 {
+		zl = append(zl[:selectedIndex], zl[selectedIndex+1:]...)
 	}
+
+	*zoneListings = zl
 
 	return amount, nil
 }
@@ -230,7 +238,11 @@ func (e *Economy) removeAmount(zoneId string, listingId string, amount int) (int
 func (e *Economy) editPrice(zoneId string, listingId string, corporationId uint64, price float64) error {
 	e.rw.RLock()
 	mutex, ok := e.zoneMutexes[zoneId]
-	e.rw.Unlock()
+	zoneListings, ok := e.marketListings[zoneId]
+	if !ok {
+		return fmt.Errorf("error: no market listing found for zone ID '%s'", zoneId)
+	}
+	e.rw.RUnlock()
 	if !ok {
 		return fmt.Errorf("error: no mutex found for zone ID '%s'", zoneId)
 	}
@@ -238,25 +250,24 @@ func (e *Economy) editPrice(zoneId string, listingId string, corporationId uint6
 	mutex.Lock()
 	defer mutex.Unlock()
 
-	marketListings, ok := e.MarketListings[zoneId]
-	if !ok {
-		return fmt.Errorf("error: no market listing found for zone ID '%s'", zoneId)
-	}
-
 	selectedIndex := -1
-	for i, ml := range marketListings {
+	for i, ml := range *zoneListings {
 		if ml.Id == listingId {
 			selectedIndex = i
 		}
 	}
 
-	listing := e.MarketListings[zoneId][selectedIndex]
+	zl := *zoneListings
+
+	listing := zl[selectedIndex]
 
 	if listing.CorporationId != corporationId {
 		return fmt.Errorf("error: you can not edit listing with ID '%s'", listingId)
 	}
 
-	e.MarketListings[zoneId][selectedIndex].Price = price
+	zl[selectedIndex].Price = price
+
+	*zoneListings = zl
 
 	return nil
 }

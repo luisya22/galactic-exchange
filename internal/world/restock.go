@@ -25,7 +25,7 @@ func (w *World) basicSupplyRestock(planetId string, resourceName string, monthly
 		wantsToBuy := monthlyProduction * w.randomInt(1, 3)
 		planet.buyResource(resourceName, wantsToBuy, w.economyChan)
 
-		fmt.Printf("%v wants to buy %v %v\n", planetId, wantsToBuy, resourceName)
+		// fmt.Printf("%v wants to buy %v %v\n", planetId, wantsToBuy, resourceName)
 
 	}
 }
@@ -101,6 +101,7 @@ func (planet *Planet) buyResource(resource string, amount int, economyChan chan 
 	command := gamecomm.EconomyCommand{
 		Action:          gamecomm.GetMarketPrice,
 		ZoneId:          planet.ZoneId,
+		Resource:        resource,
 		ResponseChannel: resChan,
 	}
 
@@ -108,6 +109,7 @@ func (planet *Planet) buyResource(resource string, amount int, economyChan chan 
 
 	res := <-resChan
 	if res.Err != nil {
+		fmt.Println(res.Err.Error())
 		return
 	}
 
@@ -118,22 +120,20 @@ func (planet *Planet) buyResource(resource string, amount int, economyChan chan 
 	command = gamecomm.EconomyCommand{
 		Action:          gamecomm.GetMarketListingsByResource,
 		Resource:        resource,
+		ZoneId:          planet.ZoneId,
 		ResponseChannel: resChan,
 	}
 
 	economyChan <- command
 	res = <-resChan
 	if res.Err != nil {
+		fmt.Println(res.Err.Error())
 		return
 	}
 
 	marketListings := res.Val.([]economy.MarketListing)
 
-	// TODO: LUIS HERE EVALUATE
-
 	// Evaluate and score each one
-
-	// TODO: attach in some way listingScore to MarketListing.Id
 	listingScores := []listingScore{}
 	for i, ml := range marketListings {
 		score := scoreListing(ml, amount, marketValue)
@@ -148,6 +148,7 @@ func (planet *Planet) buyResource(resource string, amount int, economyChan chan 
 
 	for i := range listingScores {
 
+		fmt.Println(i)
 		ml := marketListings[i]
 
 		resChan := make(chan gamecomm.ChanResponse)
@@ -159,7 +160,9 @@ func (planet *Planet) buyResource(resource string, amount int, economyChan chan 
 		}
 
 		economyChan <- command
+		fmt.Println("Buy Sent")
 		res = <-resChan
+		fmt.Println("Buy received", res)
 		if res.Err != nil {
 			return
 		}
@@ -169,6 +172,8 @@ func (planet *Planet) buyResource(resource string, amount int, economyChan chan 
 			break
 		}
 	}
+
+	fmt.Printf("%v bought %v %v", planet.Name, amount, resource)
 
 }
 
