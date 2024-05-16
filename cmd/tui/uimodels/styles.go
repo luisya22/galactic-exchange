@@ -8,7 +8,7 @@ import (
 
 var (
 	// Sizes
-	navbarHeight          = 5
+	// navbarHeight          = 5
 	topNavbarMarginBottom = 1
 	navbarMarginTop       = 1
 	navbarMarginBottom    = 2

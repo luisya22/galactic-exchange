@@ -106,7 +106,7 @@ func (m MainModel) manageNavbarChange(msg tea.Msg) (MainModel, tea.Cmd) {
 func (m MainModel) manageContentChange(msg tea.Msg) (MainModel, tea.Cmd) {
 
 	newContent, cmd := m.content.Update(msg)
-	m.content = newContent.(ContentModel)
+	m.content = newContent
 
 	if !m.content.IsActive() {
 		m.state = MainStateNavbarControl

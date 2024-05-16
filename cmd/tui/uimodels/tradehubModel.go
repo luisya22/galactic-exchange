@@ -77,9 +77,9 @@ func (t TradeHubModel) Update(msg tea.Msg) (ContentModel, tea.Cmd) {
 				t.activeTab++
 			}
 		case "enter":
-			if t.state == TradeStateTopMenu {
-
-			}
+			// if t.state == TradeStateTopMenu {
+			//
+			// }
 		case "esc":
 			// TODO: Only if child is correct value
 			if t.state == TradeStateSubMenu {

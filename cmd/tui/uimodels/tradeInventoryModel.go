@@ -1,6 +1,6 @@
 package uimodel
 
 type TradeInventoryModel struct {
-	width  int
-	height int
+	// width  int
+	// height int
 }
