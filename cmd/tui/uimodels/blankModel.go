@@ -9,6 +9,14 @@ func (h BlankModel) Init() tea.Cmd {
 	return nil
 }
 
+func (h BlankModel) IsActive() bool {
+	return false
+}
+
+func (h BlankModel) Activate() (ContentModel, tea.Cmd) {
+	return h, nil
+}
+
 func (h BlankModel) Update(msg tea.Msg) (ContentModel, tea.Cmd) {
 	return h, nil
 }
@@ -22,5 +30,5 @@ func NewBlankModel() ContentModel {
 }
 
 func (h BlankModel) ID() string {
-	return TabTradeHub
+	return "Blank Model"
 }

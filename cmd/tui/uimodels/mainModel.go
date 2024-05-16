@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/luisya22/galactic-exchange/cmd/tui/store"
 )
 
 type MainModel struct {
@@ -12,6 +13,7 @@ type MainModel struct {
 	state   MainState
 	width   int
 	height  int
+	store   *store.Store
 }
 
 type MainState int
@@ -25,6 +27,7 @@ type ContentModel interface {
 	Update(msg tea.Msg) (ContentModel, tea.Cmd)
 	View() string
 	ID() string
+	IsActive() bool
 }
 
 func (m MainModel) Init() tea.Cmd {
@@ -48,14 +51,23 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c":
 			return m, tea.Quit
+
+		case "esc":
+			m, cmd = m.manageContentChange(msg)
+		case "enter":
+			if m.state == MainStateNavbarControl {
+				m.state = MainStateContentControl
+				m, cmd = m.manageContentChange("Activate")
+
+			} else {
+				m, cmd = m.manageContentChange(msg)
+			}
 		default:
 			if m.state == MainStateNavbarControl {
 				m, cmd = m.manageNavbarChange(msg)
 
 			} else if m.state == MainStateContentControl {
-				// var content tea.Model
-				// content, cmd = m.manageContentChange(msg)
-				// m.content = content
+				m, cmd = m.manageContentChange(msg)
 			}
 		}
 	default:
@@ -82,7 +94,7 @@ func (m MainModel) manageNavbarChange(msg tea.Msg) (MainModel, tea.Cmd) {
 		case TabHome:
 			m.content = NewHomeModel(m.width, m.height)
 		case TabTradeHub:
-			m.content = NewTradeHubModel(m.width, m.height)
+			m.content = NewTradeHubModel(m.width, m.height, m.store)
 		default:
 			m.content = NewBlankModel()
 		}
@@ -92,17 +104,28 @@ func (m MainModel) manageNavbarChange(msg tea.Msg) (MainModel, tea.Cmd) {
 }
 
 func (m MainModel) manageContentChange(msg tea.Msg) (MainModel, tea.Cmd) {
-	return m, nil
 
+	newContent, cmd := m.content.Update(msg)
+	m.content = newContent.(ContentModel)
+
+	if !m.content.IsActive() {
+		m.state = MainStateNavbarControl
+	}
+
+	return m, cmd
 }
 
-func InitialModel() MainModel {
+func InitialModel(s *store.Store) MainModel {
 
-	navbar := InitNavbar()
-	home := HomeModel{}
+	navbar := InitNavbar(s)
+	home := HomeModel{
+		store: s,
+	}
 
 	return MainModel{
 		navbar:  navbar,
 		content: home,
+		state:   MainStateNavbarControl,
+		store:   s,
 	}
 }

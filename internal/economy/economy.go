@@ -102,6 +102,8 @@ func (e *Economy) Run() {
 	for _, r := range e.resources {
 		resources = append(resources, r)
 	}
+
+	// TODO: Remove
 	go e.addRandomMarketListings(resources, zoneIds, economyChannel)
 
 }

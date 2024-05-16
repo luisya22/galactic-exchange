@@ -6,15 +6,25 @@ import (
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/luisya22/galactic-exchange/cmd/tui/store"
 )
 
 type HomeModel struct {
 	width  int
 	height int
+	store  *store.Store
 }
 
 func (h HomeModel) Init() tea.Cmd {
 	return nil
+}
+
+func (h HomeModel) IsActive() bool {
+	return false
+}
+
+func (h HomeModel) Activate() (ContentModel, tea.Cmd) {
+	return h, nil
 }
 
 func (h HomeModel) SetSize(width, height int) (ContentModel, tea.Cmd) {
@@ -104,7 +114,7 @@ func (h HomeModel) getSquadContent() string {
 func (h HomeModel) getMainContent() string {
 	recentTradesTitle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#32C7C0")).
-		Render("Recente Trades")
+		Render("Recent Trades")
 
 	recenteTrades := fmt.Sprintf(
 		"%s\n%s\n%s\n%s\n",

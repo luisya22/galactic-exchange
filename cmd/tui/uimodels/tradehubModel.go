@@ -5,6 +5,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/luisya22/galactic-exchange/cmd/tui/store"
 )
 
 type TradeHubModel struct {
@@ -12,7 +13,17 @@ type TradeHubModel struct {
 	height    int
 	tabs      []TradeTab
 	activeTab int
+	isActive  bool
+	state     TradeState
+	store     *store.Store
 }
+
+type TradeState int
+
+const (
+	TradeStateTopMenu TradeState = iota
+	TradeStateSubMenu
+)
 
 type TradeTab string
 
@@ -29,6 +40,10 @@ func (t TradeHubModel) Init() tea.Cmd {
 	return nil
 }
 
+func (t TradeHubModel) IsActive() bool {
+	return t.isActive
+}
+
 func (t TradeHubModel) SetSize(width, height int) (ContentModel, tea.Cmd) {
 	t.width = width
 	t.height = height
@@ -37,11 +52,41 @@ func (t TradeHubModel) SetSize(width, height int) (ContentModel, tea.Cmd) {
 }
 
 func (t TradeHubModel) Update(msg tea.Msg) (ContentModel, tea.Cmd) {
+
+	if !t.IsActive() && msg == "Activate" {
+		t.isActive = true
+		t.state = TradeStateTopMenu
+		return t, nil
+	}
+
+	if !t.isActive {
+		return t, nil
+	}
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		return t.SetSize(msg.Width, msg.Height)
 	case tea.KeyMsg:
 		switch msg.String() {
+		case "left", "h":
+			if t.activeTab > 0 && t.state == TradeStateTopMenu {
+				t.activeTab--
+			}
+		case "right", "l":
+			if t.activeTab < len(t.tabs)-1 {
+				t.activeTab++
+			}
+		case "enter":
+			if t.state == TradeStateTopMenu {
+
+			}
+		case "esc":
+			// TODO: Only if child is correct value
+			if t.state == TradeStateSubMenu {
+				t.state = TradeStateTopMenu
+			} else {
+				t.isActive = false
+			}
 		}
 	}
 	return t, nil
@@ -51,8 +96,10 @@ func (t TradeHubModel) View() string {
 	tabs := lipgloss.NewStyle().
 		Render(t.getTabs())
 
+	h := t.height - t.store.NavBarHeight - navbarMarginTop - topNavbarMarginBottom - navbarMarginBottom - 5
+
 	content := lipgloss.NewStyle().
-		Height(40).
+		Height(h).
 		Padding(0, 1).
 		Width(t.width - 5).
 		Border(lipgloss.NormalBorder()).
@@ -65,7 +112,7 @@ func (t TradeHubModel) ID() string {
 	return TabTradeHub
 }
 
-func NewTradeHubModel(width, height int) ContentModel {
+func NewTradeHubModel(width, height int, s *store.Store) ContentModel {
 	return TradeHubModel{
 		activeTab: 0,
 		width:     width,
@@ -78,6 +125,7 @@ func NewTradeHubModel(width, height int) ContentModel {
 			TradeTabSanctions,
 			TradeTabStockMarket,
 		},
+		store: s,
 	}
 }
 
@@ -88,42 +136,16 @@ func (t TradeHubModel) getTabs() string {
 		bottomLeftBorder = "|"
 	}
 
-	activeTabBorder := lipgloss.Border{
-		Top:         "─",
-		Bottom:      " ",
-		Left:        "│",
-		Right:       "│",
-		TopLeft:     "╭",
-		TopRight:    "╮",
-		BottomLeft:  bottomLeftBorder,
-		BottomRight: "└",
-	}
-
-	tabBorder := lipgloss.Border{
-		Top:         "─",
-		Bottom:      "─",
-		Left:        "│",
-		Right:       "│",
-		TopLeft:     "╭",
-		TopRight:    "╮",
-		BottomLeft:  "┴",
-		BottomRight: "┴",
-	}
-
-	tab := lipgloss.NewStyle().
-		Border(tabBorder, true).
-		Padding(0, 1)
+	activeBorder := activeTabBorder
+	activeBorder.BottomLeft = bottomLeftBorder
 
 	activeTab := lipgloss.NewStyle().
-		Border(activeTabBorder, true).
+		Border(activeBorder, true).
 		Padding(0, 1)
 
-	tabGap := lipgloss.NewStyle().
-		Border(tabBorder, true).
-		Padding(0, 1).
-		BorderTop(false).
-		BorderLeft(false).
-		BorderRight(false)
+	if t.isActive {
+		activeTab.Foreground(primaryColor)
+	}
 
 	tabsArr := []string{}
 	for i, tabStr := range t.tabs {
@@ -132,12 +154,12 @@ func (t TradeHubModel) getTabs() string {
 			continue
 		}
 
-		tabsArr = append(tabsArr, tab.Render(string(tabStr)))
+		tabsArr = append(tabsArr, tabStyle.Render(string(tabStr)))
 	}
 
 	tabs := lipgloss.JoinHorizontal(lipgloss.Top, tabsArr...)
 
-	gap := tabGap.Render(strings.Repeat(" ", max(0, t.width-5-lipgloss.Width(tabs)-2)))
+	gap := tabGapStyle.Render(strings.Repeat(" ", max(0, t.width-5-lipgloss.Width(tabs)-2)))
 	tabs = lipgloss.JoinHorizontal(lipgloss.Bottom, tabs, gap)
 
 	return tabs
