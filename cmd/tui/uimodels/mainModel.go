@@ -42,6 +42,8 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 
+		m.store.ContentHeight = msg.Height - navbarMarginTop - topNavbarMarginBottom - navbarMarginBottom - 7
+
 		newNavBar, _ := m.navbar.Update(msg)
 		m.navbar = newNavBar.(NavbarModel)
 
@@ -50,6 +52,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
+			// TODO: Are you sure message? Do you want to save first message?
 			return m, tea.Quit
 
 		case "esc":

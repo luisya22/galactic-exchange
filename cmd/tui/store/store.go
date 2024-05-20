@@ -1,11 +1,11 @@
 package store
 
 type Store struct {
-	NavBarHeight int
+	ContentHeight int
 }
 
-func NewStore(navHeight int) *Store {
+func NewStore(contentHeight int) *Store {
 	return &Store{
-		NavBarHeight: navHeight,
+		ContentHeight: contentHeight,
 	}
 }

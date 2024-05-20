@@ -3,19 +3,21 @@ package uimodel
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/luisya22/galactic-exchange/cmd/tui/store"
 )
 
 type TradeHubModel struct {
-	width     int
-	height    int
-	tabs      []TradeTab
-	activeTab int
-	isActive  bool
-	state     TradeState
-	store     *store.Store
+	width          int
+	height         int
+	tabs           []TradeTab
+	activeTab      int
+	isActive       bool
+	state          TradeState
+	inventoryTable table.Model
+	store          *store.Store
 }
 
 type TradeState int
@@ -52,6 +54,7 @@ func (t TradeHubModel) SetSize(width, height int) (ContentModel, tea.Cmd) {
 }
 
 func (t TradeHubModel) Update(msg tea.Msg) (ContentModel, tea.Cmd) {
+	var cmd tea.Cmd
 
 	if !t.IsActive() && msg == "Activate" {
 		t.isActive = true
@@ -76,6 +79,8 @@ func (t TradeHubModel) Update(msg tea.Msg) (ContentModel, tea.Cmd) {
 			if t.activeTab < len(t.tabs)-1 {
 				t.activeTab++
 			}
+		case "up", "down", "k", "j":
+			t.inventoryTable, cmd = t.inventoryTable.Update(msg)
 		case "enter":
 			// if t.state == TradeStateTopMenu {
 			//
@@ -89,21 +94,19 @@ func (t TradeHubModel) Update(msg tea.Msg) (ContentModel, tea.Cmd) {
 			}
 		}
 	}
-	return t, nil
+	return t, cmd
 }
 
 func (t TradeHubModel) View() string {
 	tabs := lipgloss.NewStyle().
 		Render(t.getTabs())
 
-	h := t.height - t.store.NavBarHeight - navbarMarginTop - topNavbarMarginBottom - navbarMarginBottom - 5
-
 	content := lipgloss.NewStyle().
-		Height(h).
-		Padding(0, 1).
+		Height(t.store.ContentHeight).
+		Padding(2, 1).
 		Width(t.width - 5).
 		Border(lipgloss.NormalBorder()).
-		Render()
+		Render(t.inventoryTable.View())
 
 	return tabs + content
 }
@@ -113,7 +116,7 @@ func (t TradeHubModel) ID() string {
 }
 
 func NewTradeHubModel(width, height int, s *store.Store) ContentModel {
-	return TradeHubModel{
+	t := TradeHubModel{
 		activeTab: 0,
 		width:     width,
 		height:    height,
@@ -127,6 +130,10 @@ func NewTradeHubModel(width, height int, s *store.Store) ContentModel {
 		},
 		store: s,
 	}
+
+	t.inventoryTable = t.initializeInventoryTable()
+
+	return t
 }
 
 func (t TradeHubModel) getTabs() string {
@@ -163,5 +170,44 @@ func (t TradeHubModel) getTabs() string {
 	tabs = lipgloss.JoinHorizontal(lipgloss.Bottom, tabs, gap)
 
 	return tabs
+
+}
+
+// Inventory Table
+
+func (t TradeHubModel) initializeInventoryTable() table.Model {
+	columns := []table.Column{
+		{Title: "Resource", Width: 20},
+		{Title: "Quantity", Width: 20},
+	}
+
+	rows := []table.Row{
+		{"Neutronium Ore", "104435"},
+		{"Solar Plase", "400443"},
+	}
+
+	tb := table.New(
+		table.WithColumns(columns),
+		table.WithRows(rows),
+		table.WithFocused(true),
+		table.WithHeight(t.store.ContentHeight-10),
+	)
+
+	s := table.DefaultStyles()
+
+	s.Header = s.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(true).
+		Bold(false)
+
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		Bold(false)
+
+	tb.SetStyles(s)
+
+	return tb
 
 }
