@@ -32,7 +32,7 @@ func (w *World) GeneratePlanetsInZone(numPlanets int, zone Zone, zoneType ZoneTy
 	zonePlanets := make(map[string]*Planet, numPlanets)
 	for i := 0; i < numPlanets; i++ {
 		distanceFromZoneCenter := w.RandomNumber.Float64() * 100
-		angle := w.RandomNumber.Float64() * 2 * 3.14159
+		angle := w.RandomNumber.Float64() * 2 * math.Pi
 
 		planetLocation := Coordinates{
 			X: zone.CentralPoint.X + distanceFromZoneCenter*math.Cos(angle),
