@@ -3,21 +3,20 @@ package uimodel
 import (
 	"strings"
 
-	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/luisya22/galactic-exchange/cmd/tui/store"
 )
 
 type TradeHubModel struct {
-	width          int
-	height         int
-	tabs           []TradeTab
-	activeTab      int
-	isActive       bool
-	state          TradeState
-	inventoryTable table.Model
-	store          *store.Store
+	width      int
+	height     int
+	tabs       []TradeTab
+	activeTab  int
+	isActive   bool
+	state      TradeState
+	store      *store.Store
+	subContent ContentModel
 }
 
 type TradeState int
@@ -54,8 +53,8 @@ func (t TradeHubModel) SetSize(width, height int) (ContentModel, tea.Cmd) {
 }
 
 func (t TradeHubModel) Update(msg tea.Msg) (ContentModel, tea.Cmd) {
-	var cmd tea.Cmd
 
+	var cmd tea.Cmd
 	if !t.IsActive() && msg == "Activate" {
 		t.isActive = true
 		t.state = TradeStateTopMenu
@@ -74,13 +73,15 @@ func (t TradeHubModel) Update(msg tea.Msg) (ContentModel, tea.Cmd) {
 		case "left", "h":
 			if t.activeTab > 0 && t.state == TradeStateTopMenu {
 				t.activeTab--
+				t = t.changeSubContent()
 			}
 		case "right", "l":
 			if t.activeTab < len(t.tabs)-1 {
 				t.activeTab++
+				t = t.changeSubContent()
 			}
 		case "up", "down", "k", "j":
-			t.inventoryTable, cmd = t.inventoryTable.Update(msg)
+			t.subContent, cmd = t.subContent.Update(msg)
 		case "enter":
 			// if t.state == TradeStateTopMenu {
 			//
@@ -106,7 +107,7 @@ func (t TradeHubModel) View() string {
 		Padding(2, 1).
 		Width(t.width - 5).
 		Border(lipgloss.NormalBorder()).
-		Render(t.inventoryTable.View())
+		Render(t.subContent.View())
 
 	return tabs + content
 }
@@ -115,7 +116,21 @@ func (t TradeHubModel) ID() string {
 	return TabTradeHub
 }
 
+func (t TradeHubModel) changeSubContent() TradeHubModel {
+	activeTab := t.tabs[t.activeTab]
+
+	switch activeTab {
+	case TradeTabInventory:
+		t.subContent = NewTradeHubInventory(t.width, t.height, t.store)
+	case TradeTabMarketData:
+		t.subContent = NewTradeHubMarketData(t.width, t.height, t.store)
+	}
+
+	return t
+}
+
 func NewTradeHubModel(width, height int, s *store.Store) ContentModel {
+	inv := NewTradeHubInventory(width, height, s)
 	t := TradeHubModel{
 		activeTab: 0,
 		width:     width,
@@ -128,10 +143,9 @@ func NewTradeHubModel(width, height int, s *store.Store) ContentModel {
 			TradeTabSanctions,
 			TradeTabStockMarket,
 		},
-		store: s,
+		store:      s,
+		subContent: inv,
 	}
-
-	t.inventoryTable = t.initializeInventoryTable()
 
 	return t
 }
@@ -170,44 +184,5 @@ func (t TradeHubModel) getTabs() string {
 	tabs = lipgloss.JoinHorizontal(lipgloss.Bottom, tabs, gap)
 
 	return tabs
-
-}
-
-// Inventory Table
-
-func (t TradeHubModel) initializeInventoryTable() table.Model {
-	columns := []table.Column{
-		{Title: "Resource", Width: 20},
-		{Title: "Quantity", Width: 20},
-	}
-
-	rows := []table.Row{
-		{"Neutronium Ore", "104435"},
-		{"Solar Plase", "400443"},
-	}
-
-	tb := table.New(
-		table.WithColumns(columns),
-		table.WithRows(rows),
-		table.WithFocused(true),
-		table.WithHeight(t.store.ContentHeight-10),
-	)
-
-	s := table.DefaultStyles()
-
-	s.Header = s.Header.
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		BorderBottom(true).
-		Bold(false)
-
-	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(false)
-
-	tb.SetStyles(s)
-
-	return tb
 
 }
